@@ -1,0 +1,29 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Secretos locales
+.env
+.env.*
+!.env.example
+platform/keys/*.pem
+
+# Node / frontend
+node_modules/
+dist/
+
+# Python
+__pycache__/
+.venv/
+
+# Estado de sesión de Claude Code (local)
+.claude/

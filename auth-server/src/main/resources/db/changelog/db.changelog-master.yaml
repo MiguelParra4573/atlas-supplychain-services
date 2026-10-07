@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/001-baseline-schema.sql
+  - include:
+      file: db/changelog/002-seed-rbac-catalog.sql
+  - include:
+      file: db/changelog/003-seed-demo-users.sql
