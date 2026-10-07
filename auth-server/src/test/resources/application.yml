@@ -1,0 +1,55 @@
+server:
+  port: 0
+  servlet:
+    context-path: /api/v1
+
+spring:
+  application:
+    name: auth-server
+
+  # Postgres real vía el driver JDBC de Testcontainers (sobre Docker). TC_DAEMON mantiene el
+  # contenedor vivo entre contextos de Spring; schema.sql crea el schema auth y la secuencia
+  # que no cuelga de ninguna entidad. Hibernate genera las tablas (create-drop): los tests de
+  # la baseline real de Liquibase usan el perfil liquibase-it.
+  datasource:
+    url: jdbc:tc:postgresql:17:///atlas?TC_DAEMON=true&TC_INITSCRIPT=file:src/test/resources/schema.sql
+    username: test
+    password: test
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+
+  liquibase:
+    enabled: false
+
+  # Sin SMTP real: los tests de reset de password mockean NotificationSender.
+  mail:
+    host: localhost
+    port: 1
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        default_schema: auth
+    show-sql: false
+
+outbox:
+  # Sin broker en la suite general: el relay no debe dispararse solo durante los tests.
+  poll-interval-ms: 3600000
+
+security:
+  jwt:
+    issuer: "auth-server"
+    access-token-ttl-minutes: 15
+    refresh-token-ttl-days: 7
+    private-key-path: src/test/resources/keys/private_key.pem
+    public-key-path: src/test/resources/keys/public_key.pem
+
+# Sin broker ni SMTP en la suite general: sus health indicators marcarían DOWN (503) el /actuator/health.
+management:
+  health:
+    rabbit:
+      enabled: false
+    mail:
+      enabled: false

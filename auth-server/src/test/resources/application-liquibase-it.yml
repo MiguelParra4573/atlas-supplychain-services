@@ -1,0 +1,19 @@
+spring:
+  # @ServiceConnection aporta url/usuario del contenedor; el driver debe ser el de Postgres, no el
+  # ContainerDatabaseDriver de la suite general.
+  datasource:
+    driver-class-name: org.postgresql.Driver
+
+  liquibase:
+    enabled: true
+    default-schema: auth
+    liquibase-schema: auth
+    contexts: demo
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: auth
+    show-sql: false
