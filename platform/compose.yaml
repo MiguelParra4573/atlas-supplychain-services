@@ -1,0 +1,89 @@
+# Infraestructura local de Atlas. Uso, desde la raíz de services/:
+#   cp .env.example .env
+#   docker compose --env-file .env -f platform/compose.yaml up -d                         # solo infraestructura
+#   docker compose --env-file .env -f platform/compose.yaml --profile app up -d --build   # + auth-server
+name: atlas
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-atlas}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-atlas}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-atlas}
+    ports:
+      - "5672:5672"
+      - "15672:15672"   # consola de administración
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # bandeja web
+
+  auth-server:
+    profiles: ["app"]
+    build:
+      context: ..
+      dockerfile: auth-server/Dockerfile
+    image: atlas/auth-server
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-atlas}
+      DB_USERNAME: ${AUTH_DB_USER:-auth_user}
+      DB_PASSWORD: ${AUTH_DB_PASSWORD:-auth_pass}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USER:-atlas}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-atlas}
+      MAIL_HOST: mailpit
+      LIQUIBASE_CONTEXTS: ${LIQUIBASE_CONTEXTS:-}
+      JWT_PRIVATE_KEY_PATH: /keys/private_key.pem
+      JWT_PUBLIC_KEY_PATH: /keys/public_key.pem
+    volumes:
+      - ./keys:/keys:ro
+    ports:
+      - "9000:9000"
+
+  redis:
+    image: redis:7
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - redis-data:/data
+
+volumes:
+  postgres-data:
+  rabbitmq-data:
+  redis-data:
