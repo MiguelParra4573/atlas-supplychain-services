@@ -5,7 +5,12 @@ plugins {
     id("org.springframework.boot")
 }
 
+val libs = the<VersionCatalogsExtension>().named("libs")
+
 dependencies {
+    // developmentOnly no hereda de implementation, así que necesita el BOM por su cuenta.
+    developmentOnly(platform(libs.findLibrary("spring-boot-dependencies").get()))
+
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
