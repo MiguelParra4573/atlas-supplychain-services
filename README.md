@@ -31,6 +31,23 @@ docs/            plan, specs y ADRs
 ./gradlew build                                   # todo, incluye integrationTest
 ```
 
+## Infraestructura local
+
+```bash
+cp .env.example .env     # una vez; ajustar POSTGRES_PORT si 5432 está ocupado
+docker compose --env-file .env -f platform/compose.yaml up -d                         # Postgres, RabbitMQ, Mailpit
+docker compose --env-file .env -f platform/compose.yaml --profile app up -d --build   # + auth-server en contenedor
+```
+
+| Servicio | URL / puerto |
+|---|---|
+| auth-server | http://localhost:9000/api/v1 (login: `POST /auth/login` con `usuario`/`contrasena`) |
+| Postgres 17 | `localhost:${POSTGRES_PORT}` (schema `auth`, usuario `auth_user`) |
+| RabbitMQ (consola) | http://localhost:15672 (`atlas`/`atlas`) |
+| Mailpit (bandeja) | http://localhost:8025 |
+
+Para desarrollar sin contenedor de auth-server: levantar solo la infraestructura y correr `./gradlew :auth-server:bootRun` (con `LIQUIBASE_CONTEXTS=demo` para el usuario `admin.atlas` / `Admin#2026`; si cambiaste `POSTGRES_PORT`, también `DB_URL`). Las init de `platform/postgres/init/` solo corren al crear el volumen; para repetirlas: `docker compose ... down -v`.
+
 ## Convenciones
 
 - Un schema de Postgres y un usuario de BD por servicio; sin joins entre schemas.
