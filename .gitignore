@@ -27,3 +27,6 @@ __pycache__/
 
 # Estado de sesión de Claude Code (local)
 .claude/
+
+# Documentación del proyecto (local, no se publica)
+docs/
