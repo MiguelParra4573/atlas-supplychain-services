@@ -16,6 +16,9 @@ spring:
     username: test
     password: test
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    hikari:
+      maximum-pool-size: 3
+      minimum-idle: 1
 
   liquibase:
     enabled: false
