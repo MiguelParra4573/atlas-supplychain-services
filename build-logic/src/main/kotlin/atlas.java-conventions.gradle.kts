@@ -50,6 +50,9 @@ val integrationTest = tasks.register<Test>("integrationTest") {
     include(integrationTestPattern, "**/*ApplicationTests*")
     shouldRunAfter(tasks.named("test"))
     configureContainerRuntime()
+    testLogging {
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
 }
 
 // Testcontainers corre sobre Docker. Si hay DOCKER_HOST (o -Patlas.docker.host) se respeta; si no,
