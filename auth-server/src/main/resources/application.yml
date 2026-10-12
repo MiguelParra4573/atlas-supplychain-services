@@ -55,8 +55,8 @@ security:
   jwt:
     issuer: ${JWT_ISSUER:http://localhost:9000/api/v1}
     key-id: ${JWT_KEY_ID:auth-server-rsa-1}
-    private-key-path: ${JWT_PRIVATE_KEY_PATH:../platform/keys/private_key.pem}
-    public-key-path: ${JWT_PUBLIC_KEY_PATH:../platform/keys/public_key.pem}
+    private-key-path: ${JWT_PRIVATE_KEY_PATH:../../platform/keys/private_key.pem}
+    public-key-path: ${JWT_PUBLIC_KEY_PATH:../../platform/keys/public_key.pem}
     access-token-ttl-minutes: 15
     refresh-token-ttl-days: 7
     service-token-ttl-seconds: 60

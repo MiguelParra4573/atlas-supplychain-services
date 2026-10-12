@@ -1,6 +1,8 @@
 # Atlas Supply Chain: services
 
-Backend de la plataforma. El frontend vive en el repo hermano `atlas-supplychain-client`.
+Backend de la plataforma. El frontend vive en el repo hermano `atlas-supplychain-client` y la
+infraestructura local (el compose) en `atlas-supplychain-platform`; los tres se clonan en la misma
+carpeta.
 
 Plataforma modular de supply chain (catálogo, inventario, compras, producción, ventas, distribución y analítica) construida como proyecto de práctica de arquitectura: hexagonal, CQRS, Event Sourcing, sagas y Transactional Outbox. El plan completo está en [`docs/Plan de implementación plataforma Supply Chain (portafolio).md`](docs/Plan%20de%20implementaci%C3%B3n%20plataforma%20Supply%20Chain%20(portafolio).md).
 
@@ -11,15 +13,14 @@ Fase 0 (fundamentos) en curso. Módulo existente: `auth-server` (IdP propio con 
 ## Requisitos
 
 - JDK 25 (el wrapper de Gradle resuelve el toolchain)
-- Docker Desktop corriendo (Testcontainers y `docker compose`)
-- Git Bash o similar para `platform/keys/generate-keys.sh`
+- Podman corriendo, para el compose de `../platform/` (Testcontainers necesita además un socket compatible con Docker)
+- Git Bash o similar para `../platform/keys/generate-keys.sh`
 
 ## Estructura
 
 ```text
 auth-server/     microservicio IdP (los demás servicios se agregan como carpetas hermanas)
 build-logic/     plugins de convención Gradle (atlas.java-conventions, atlas.spring-service)
-platform/        infraestructura local: compose, init de Postgres, claves de desarrollo
 docs/            plan, specs y ADRs
 ```
 
@@ -33,10 +34,12 @@ docs/            plan, specs y ADRs
 
 ## Infraestructura local
 
+El compose vive en el repo `atlas-supplychain-platform`, clonado al lado de este. Desde `../platform/`:
+
 ```bash
 cp .env.example .env     # una vez; ajustar POSTGRES_PORT si 5432 está ocupado
-docker compose --env-file .env -f platform/compose.yaml up -d                         # Postgres, RabbitMQ, Mailpit
-docker compose --env-file .env -f platform/compose.yaml --profile app up -d --build   # + auth-server en contenedor
+podman compose --env-file .env up -d                         # Postgres, RabbitMQ, Mailpit, Redis
+podman compose --env-file .env --profile app up -d --build   # + auth-server en contenedor
 ```
 
 | Servicio | URL / puerto |
@@ -46,7 +49,7 @@ docker compose --env-file .env -f platform/compose.yaml --profile app up -d --bu
 | RabbitMQ (consola) | http://localhost:15672 (`atlas`/`atlas`) |
 | Mailpit (bandeja) | http://localhost:8025 |
 
-Para desarrollar sin contenedor de auth-server: levantar solo la infraestructura y correr `./gradlew :auth-server:bootRun` (con `LIQUIBASE_CONTEXTS=demo` para el usuario `admin.atlas` / `Admin#2026`; si cambiaste `POSTGRES_PORT`, también `DB_URL`). Las init de `platform/postgres/init/` solo corren al crear el volumen; para repetirlas: `docker compose ... down -v`.
+Para desarrollar sin contenedor de auth-server: levantar solo la infraestructura y correr `./gradlew :auth-server:bootRun` (con `LIQUIBASE_CONTEXTS=demo` para el usuario `admin.atlas` / `Admin#2026`; si cambiaste `POSTGRES_PORT`, también `DB_URL`). Las init de `../platform/postgres/init/` solo corren al crear el volumen; para repetirlas: `podman compose ... down -v`.
 
 ## Convenciones
 
