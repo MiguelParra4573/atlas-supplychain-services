@@ -2,7 +2,7 @@
 
 Backend de la plataforma. El frontend vive en el repo hermano `atlas-supplychain-client`.
 
-Plataforma modular de supply chain (catálogo, inventario, compras, producción, ventas, distribución y analítica) construida como proyecto de práctica de arquitectura: hexagonal, CQRS, Event Sourcing, sagas y Transactional Outbox. El plan completo está en [`docs/Plan de implementación plataforma Supply Chain (portafolio).md`](docs/Plan%20de%20implementaci%C3%B3n%20plataforma%20Supply%20Chain%20(portafolio).md).
+Plataforma modular de supply chain (catálogo, inventario, compras, producción, ventas, distribución y analítica) construida como proyecto de práctica de arquitectura: hexagonal, CQRS, Event Sourcing, sagas y Transactional Outbox.
 
 ## Estado
 
@@ -19,7 +19,6 @@ Fase 0 (fundamentos) en curso. Módulo existente: `auth-server` (IdP propio con 
 ```text
 auth-server/     microservicio IdP (los demás servicios se agregan como carpetas hermanas)
 build-logic/     plugins de convención Gradle (atlas.java-conventions, atlas.spring-service)
-docs/            plan, specs y ADRs
 ```
 
 ## Comandos
@@ -33,18 +32,23 @@ docs/            plan, specs y ADRs
 ## Infraestructura local
 
 El `compose.yaml` que levanta Postgres, RabbitMQ, Mailpit, Redis y el `auth-server` no vive en este
-repo, porque lo comparten el backend y el frontend. Las instrucciones están en `docs/entorno-local.md`.
+repo, porque lo comparten el backend y el frontend: vive en `atlas-supplychain-platform`, que se clona
+como carpeta hermana de este. Desde ahí, `podman compose --env-file .env --profile app up -d --build`.
 
 | Servicio | URL / puerto |
 |---|---|
 | auth-server | http://localhost:9000/api/v1 (login: `POST /auth/login` con `usuario`/`contrasena`) |
-| Postgres 17 | `localhost:${POSTGRES_PORT}` (schema `auth`, usuario `auth_user`) |
-| RabbitMQ (consola) | http://localhost:15672 |
-| Mailpit (bandeja) | http://localhost:8025 |
+| Postgres 17 | `localhost:15100`, base `atlas` (schema `auth`, usuario `auth_user`) |
+| RabbitMQ (consola) | http://localhost:15111 (AMQP en el 15110) |
+| Mailpit (bandeja) | http://localhost:15141 (SMTP en el 15140) |
+
+Los puertos publicados son el bloque 151xx y se configuran en el `.env` de `atlas-supplychain-platform`.
 
 ## Convenciones
 
 - Un schema de Postgres y un usuario de BD por servicio; sin joins entre schemas.
 - APIs bajo `/api/v1`, errores con `ProblemDetail` (RFC 9457).
 - Secretos por variables de entorno (ver `.env.example`); las claves `.pem` no se versionan.
-- Ramas por spec; commits en formato convencional (`feat:`, `fix:`, `docs:`, `chore:`).
+- Gitflow: `main` solo recibe releases; `develop` es la rama de integración; cada spec abre su
+  rama desde `develop` y se mergea de vuelta ahí. Commits en formato convencional (`feat:`, `fix:`,
+  `docs:`, `chore:`…), sin trailers de atribución (ver `convenciones.md`).
