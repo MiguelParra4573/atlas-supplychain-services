@@ -8,6 +8,8 @@
 # Regla: acá solo entran commits generados por `./gradlew :auth-server:spotlessApply` sin
 # ninguna edición manual. Si un commit mezcla formato con lógica, no va.
 #
-# Pendiente: el primer spotlessApply de este harness (ver docs/adr/013-harness-de-calidad.md en
-# la raíz del workspace) todavía no tiene commit propio. Cuando se confirme, su SHA va acá, en
-# una línea sola, con el mensaje "style: aplicar spotless (sin cambios de comportamiento)".
+# Nota: este commit mezcla el reformateo con las correcciones reales que Error Prone y NullAway
+# encontraron (ver docs/adr/013-harness-de-calidad.md en la raíz del workspace) -- no se pudo
+# aislar un reformateo puro, así que entra acá como mejor aproximación, no como caso ideal.
+# style: aplicar spotless + arreglar hallazgos de Error Prone y NullAway
+5667caf7525d9c5a45d94f4d604aac4c4819784d
