@@ -24,8 +24,16 @@ dependencies {
     implementation(libs.querydsl.jpa)
     annotationProcessor(variantOf(libs.querydsl.apt) { classifier("jpa") })
     annotationProcessor("jakarta.persistence:jakarta.persistence-api")
+    // querydsl-core referencia org.jetbrains.annotations.Range sin traerla como dependencia;
+    // sin esto, javac -Xlint:classfile avisa en cada clase de QueryDSL en el classpath.
+    compileOnly(libs.jetbrains.annotations)
 
     implementation(libs.commons.lang3)
+    // La gestiona el BOM de Boot. Llega transitiva por spring-core, pero el código la
+    // importa directo (@NullMarked en los package-info, @Nullable en los modelos), y
+    // depender de un transitivo que se usa en código es la deuda que explota en el
+    // upgrade que lo quita.
+    implementation("org.jspecify:jspecify")
 
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
     testImplementation("org.springframework.boot:spring-boot-starter-security-test")

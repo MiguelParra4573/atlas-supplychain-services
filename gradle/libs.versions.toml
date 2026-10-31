@@ -10,10 +10,28 @@ querydsl = "7.1"
 commons-lang3 = "3.18.0"
 archunit = "1.5.0"
 
+# Harness de calidad (ver docs/adr/013-harness-de-calidad.md en la raíz del workspace).
+spotless-plugin = "8.10.4"
+# Pin por debajo del latest (1.37.0): esa versión quita
+# JavaFormatterOptions.Style.valueOf(String), que Spotless 8.10.x todavía llama, y
+# revienta con NoSuchMethodError en cada archivo. Se sube junto con Spotless, no antes.
+google-java-format = "1.36.1"
+errorprone-plugin = "4.4.0"
+errorprone = "2.51.0"
+nullaway = "0.14.3"
+jacoco = "0.8.15"
+jetbrains-annotations = "26.1.0"
+
 [libraries]
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "spring-cloud" }
 spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
+spotless-plugin-gradle = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless-plugin" }
+google-java-format = { module = "com.google.googlejavaformat:google-java-format", version.ref = "google-java-format" }
+errorprone-plugin-gradle = { module = "net.ltgt.gradle:gradle-errorprone-plugin", version.ref = "errorprone-plugin" }
+errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
+nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
+jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
 
 springdoc-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
 jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
