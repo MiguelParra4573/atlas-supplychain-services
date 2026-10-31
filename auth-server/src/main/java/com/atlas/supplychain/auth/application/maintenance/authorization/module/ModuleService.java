@@ -5,7 +5,6 @@ import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Module;
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
 import com.atlas.supplychain.auth.domain.shared.query.FilterCriterion;
-
 import java.util.List;
 
 public interface ModuleService {
@@ -20,5 +19,6 @@ public interface ModuleService {
 
     List<Module> listarModulosPorState(String idCompany, Boolean state);
 
-    PagedResult<Module> listarModulosPaginados(String idCompany, List<FilterCriterion> filters, PageQuery pageQuery);
+    PagedResult<Module> listarModulosPaginados(
+            String idCompany, List<FilterCriterion> filters, PageQuery pageQuery);
 }

@@ -6,17 +6,15 @@ import com.atlas.supplychain.auth.domain.common.exceptions.BusinessRuleException
 import com.atlas.supplychain.auth.domain.common.exceptions.ServiceException;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.security.RefreshToken;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.security.RefreshTokenRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HexFormat;
-
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -46,8 +44,12 @@ public class RefreshTokenService implements RefreshSessionManager {
         Instant now = Instant.now();
         String hash = sha256Hex(refreshTokenRaw);
 
-        RefreshToken current = repo.findByTokenHash(hash)
-                .orElseThrow(() -> new BusinessRuleException(BusinessRuleCode.REFRESH_TOKEN_INVALIDO));
+        RefreshToken current =
+                repo.findByTokenHash(hash)
+                        .orElseThrow(
+                                () ->
+                                        new BusinessRuleException(
+                                                BusinessRuleCode.REFRESH_TOKEN_INVALIDO));
 
         if (!current.isActive(now)) {
             throw new BusinessRuleException(BusinessRuleCode.REFRESH_TOKEN_INVALIDO);
@@ -66,12 +68,14 @@ public class RefreshTokenService implements RefreshSessionManager {
     @Transactional
     public void revoke(String refreshTokenRaw) {
         String hash = sha256Hex(refreshTokenRaw);
-        repo.findByTokenHash(hash).ifPresent(token -> {
-            if (token.getRevokedAt() == null) {
-                token.setRevokedAt(Instant.now());
-                repo.save(token);
-            }
-        });
+        repo.findByTokenHash(hash)
+                .ifPresent(
+                        token -> {
+                            if (token.getRevokedAt() == null) {
+                                token.setRevokedAt(Instant.now());
+                                repo.save(token);
+                            }
+                        });
     }
 
     @Override
@@ -91,21 +95,28 @@ public class RefreshTokenService implements RefreshSessionManager {
         Instant now = Instant.now();
         Instant exp = now.plus(refreshTtl());
 
-        RefreshToken token = RefreshToken.builder().tokenHash(hash).idUser(idUser).idCompany(idCompany).createdAt(now).expiresAt(exp).build();
+        RefreshToken token =
+                RefreshToken.builder()
+                        .tokenHash(hash)
+                        .idUser(idUser)
+                        .idCompany(idCompany)
+                        .createdAt(now)
+                        .expiresAt(exp)
+                        .build();
 
         repo.save(token);
-        return new Issued(raw, hash, exp);
+        return new Issued(raw, hash);
     }
 
+    // La expiración ya queda persistida en el RefreshToken (arriba); nadie necesita leerla
+    // de vuelta acá, así que este par no la lleva.
     private static class Issued {
         final String rawToken;
         final String tokenHash;
-        final Instant expiresAt;
 
-        Issued(String rawToken, String tokenHash, Instant expiresAt) {
+        Issued(String rawToken, String tokenHash) {
             this.rawToken = rawToken;
             this.tokenHash = tokenHash;
-            this.expiresAt = expiresAt;
         }
     }
 

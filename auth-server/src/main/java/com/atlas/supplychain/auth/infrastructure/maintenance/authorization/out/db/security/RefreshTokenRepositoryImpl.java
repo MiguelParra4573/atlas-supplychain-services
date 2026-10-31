@@ -3,12 +3,11 @@ package com.atlas.supplychain.auth.infrastructure.maintenance.authorization.out.
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.security.RefreshToken;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.security.RefreshTokenRepository;
 import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.out.mappers.security.RefreshTokenMapper;
+import java.time.Instant;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -32,6 +31,7 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
     public int revokeAllActiveByIdUserAndCompany(String idUser, String idCompany, Instant now) {
         // idUser sigue String en el contrato de dominio (opaco, ver UserRepositoryImpl) --
         // id_user ya es bigint en BD desde el cambio de tipo de auth-server, se convierte acá.
-        return jpaRepository.revokeAllActiveByIdUserAndCompany(Long.parseLong(idUser), idCompany, now);
+        return jpaRepository.revokeAllActiveByIdUserAndCompany(
+                Long.parseLong(idUser), idCompany, now);
     }
 }

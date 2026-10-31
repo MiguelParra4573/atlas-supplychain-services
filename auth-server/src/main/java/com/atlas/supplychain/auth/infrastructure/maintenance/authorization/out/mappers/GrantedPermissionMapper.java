@@ -5,7 +5,9 @@ import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entit
 import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authorization.GrantedPermissionDTO;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring", uses = { OperationMapper.class })
+@Mapper(
+        componentModel = "spring",
+        uses = {OperationMapper.class})
 public interface GrantedPermissionMapper {
 
     // ENTITY → DOMAIN
@@ -13,7 +15,10 @@ public interface GrantedPermissionMapper {
     // (la variante con modules y la de listados sin modules) -- este path (User.esVigente) SÍ
     // necesita `modules` poblado, ver el comentario en OperationMapper#entityToDomain.
     @Mapping(target = "role", ignore = true) // 👈 no mapear el Role para evitar ciclo
-    @Mapping(source = "operationEntity", target = "operation", qualifiedByName = "operationEntityToDomainConModulos")
+    @Mapping(
+            source = "operationEntity",
+            target = "operation",
+            qualifiedByName = "operationEntityToDomainConModulos")
     GrantedPermission entityToDomain(GrantedPermissionEntity entity);
 
     // DOMAIN → ENTITY
@@ -22,7 +27,9 @@ public interface GrantedPermissionMapper {
     GrantedPermissionEntity domainToEntity(GrantedPermission domain);
 
     // DTO → DOMAIN -- idCompany no se confía del cliente, se recibe aparte (del principal)
-    @Mapping(target = "role", ignore = true) // si quieres luego rellenar el role por id, lo haces a mano
+    @Mapping(
+            target = "role",
+            ignore = true) // si quieres luego rellenar el role por id, lo haces a mano
     @Mapping(source = "dto.idOperation", target = "operation.idOperation")
     @Mapping(source = "idCompany", target = "idCompany")
     GrantedPermission dtoToDomain(GrantedPermissionDTO dto, String idCompany);

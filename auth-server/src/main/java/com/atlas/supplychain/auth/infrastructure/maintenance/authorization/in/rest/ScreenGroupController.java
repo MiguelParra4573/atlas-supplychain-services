@@ -7,6 +7,7 @@ import com.atlas.supplychain.auth.infrastructure.config.security.CustomUserDetai
 import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.out.mappers.ScreenGroupMapper;
 import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authorization.ScreenGroupDTO;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +15,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * Carpetas dentro de un módulo (Spec 1.4). Protegido con {@code OPERACIONES:*} -- mismo criterio
@@ -36,7 +35,8 @@ public class ScreenGroupController {
     public ResponseEntity<Void> crear(
             @PathVariable Long idModule,
             @Validated({ScreenGroupDTO.Crear.class}) @RequestBody ScreenGroupDTO dto,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
         ScreenGroup group = mapper.dtoToDomain(dto, principal.getIdCompany(), idModule);
         service.crear(group);
@@ -48,7 +48,8 @@ public class ScreenGroupController {
     public ResponseEntity<Void> actualizar(
             @PathVariable Long idModule,
             @Validated({ScreenGroupDTO.Actualizar.class}) @RequestBody ScreenGroupDTO dto,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
         ScreenGroup group = mapper.dtoToDomain(dto, principal.getIdCompany(), idModule);
         service.actualizar(group);
@@ -60,7 +61,8 @@ public class ScreenGroupController {
     public ResponseEntity<Void> eliminar(
             @PathVariable Long idModule,
             @NotNull @PathVariable Long id,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
         service.eliminar(principal.getIdCompany(), id);
         return ResponseEntity.ok().build();
@@ -69,10 +71,12 @@ public class ScreenGroupController {
     @GetMapping
     @PreAuthorize("hasAuthority('OPERACIONES:LISTAR')")
     public ResponseEntity<List<ScreenGroupDTO>> listarPorModulo(
-            @PathVariable Long idModule,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @PathVariable Long idModule, @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
-        return ResponseEntity.ok(service.listarPorModulo(principal.getIdCompany(), idModule)
-                .stream().map(mapper::domainToDto).toList());
+        return ResponseEntity.ok(
+                service.listarPorModulo(principal.getIdCompany(), idModule).stream()
+                        .map(mapper::domainToDto)
+                        .toList());
     }
 }

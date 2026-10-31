@@ -1,7 +1,6 @@
 package com.atlas.supplychain.auth.domain.common.exceptions;
 
 public enum BusinessRuleCode {
-
     PASSWORD_ACTUAL_INCORRECTA(400, "La contraseña actual es incorrecta."),
     PASSWORD_REUTILIZADA(409, "No se permite reutilizar una contraseña reciente."),
     TOKEN_RESET_INVALIDO(400, "El enlace de restablecimiento no es válido o ha expirado."),
@@ -26,8 +25,8 @@ public enum BusinessRuleCode {
     }
 
     /**
-     * TOKEN_RESET_EXPIRADO colapsa a TOKEN_RESET_INVALIDO ante el cliente: distinguirlos
-     * permitiría enumerar tokens válidos. El valor del enum queda separado solo para el log.
+     * TOKEN_RESET_EXPIRADO colapsa a TOKEN_RESET_INVALIDO ante el cliente: distinguirlos permitiría
+     * enumerar tokens válidos. El valor del enum queda separado solo para el log.
      */
     public String getPublicCode() {
         return this == TOKEN_RESET_EXPIRADO ? TOKEN_RESET_INVALIDO.name() : name();

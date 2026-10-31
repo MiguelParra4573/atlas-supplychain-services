@@ -4,9 +4,8 @@ import com.atlas.supplychain.auth.domain.common.exceptions.DuplicateRecordExcept
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.ProcessStage;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.ProcessStageRepository;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class ProcessStageServiceImpl implements ProcessStageService {
@@ -21,7 +20,8 @@ public class ProcessStageServiceImpl implements ProcessStageService {
     }
 
     @Override
-    public void actualizar(ProcessStage stage) throws EntityNotFoundException, DuplicateRecordException {
+    public void actualizar(ProcessStage stage)
+            throws EntityNotFoundException, DuplicateRecordException {
         // Excluyendo el propio registro: si no cambió, el código/secuencia existente en la base es
         // el suyo, no una colisión con otra etapa.
         ProcessStage existente = repository.obtenerPorId(stage.getIdProcessStage());
@@ -59,9 +59,12 @@ public class ProcessStageServiceImpl implements ProcessStageService {
     }
 
     private void validarSecuenciaUnica(ProcessStage stage) throws DuplicateRecordException {
-        if (repository.existsBySequenceEnProceso(stage.getIdBusinessProcess(), stage.getSequence())) {
+        if (repository.existsBySequenceEnProceso(
+                stage.getIdBusinessProcess(), stage.getSequence())) {
             throw new DuplicateRecordException(
-                    "Ya existe una etapa con secuencia " + stage.getSequence() + " en este proceso");
+                    "Ya existe una etapa con secuencia "
+                            + stage.getSequence()
+                            + " en este proceso");
         }
     }
 }

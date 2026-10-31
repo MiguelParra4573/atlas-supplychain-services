@@ -4,9 +4,8 @@ import com.atlas.supplychain.auth.domain.maintenance.authorization.menu.MenuModu
 import com.atlas.supplychain.auth.domain.maintenance.authorization.menu.MenuOperacionView;
 import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authorization.MenuModuloDTO;
 import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authorization.MenuOperacionDTO;
-import org.mapstruct.Mapper;
-
 import java.util.List;
+import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public interface MenuMapper {

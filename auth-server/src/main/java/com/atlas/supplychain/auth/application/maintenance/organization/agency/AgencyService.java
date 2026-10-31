@@ -5,7 +5,6 @@ import com.atlas.supplychain.auth.domain.maintenance.organization.model.Agency;
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
 import com.atlas.supplychain.auth.domain.shared.query.FilterCriterion;
-
 import java.util.List;
 
 public interface AgencyService {
@@ -20,5 +19,6 @@ public interface AgencyService {
 
     List<Agency> listarAgenciesPorCompany(String idCompany);
 
-    PagedResult<Agency> listarAgenciesPaginadas(String idCompany, List<FilterCriterion> filters, PageQuery pageQuery);
+    PagedResult<Agency> listarAgenciesPaginadas(
+            String idCompany, List<FilterCriterion> filters, PageQuery pageQuery);
 }

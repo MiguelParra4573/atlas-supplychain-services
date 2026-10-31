@@ -5,6 +5,7 @@ import com.atlas.supplychain.auth.domain.common.exceptions.DuplicateRecordExcept
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
 import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.out.mappers.ProcessStageMapper;
 import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authorization.ProcessStageDTO;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +20,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 /**
- * Catálogo de etapas de proceso (Spec 1.3). Mantenimiento del proveedor del ERP, igual que
- * {@code BusinessProcessController}: autoridades {@code PROCESS_STAGES:*}, no cuelgan de
- * {@code MODULOS}.
+ * Catálogo de etapas de proceso (Spec 1.3). Mantenimiento del proveedor del ERP, igual que {@code
+ * BusinessProcessController}: autoridades {@code PROCESS_STAGES:*}, no cuelgan de {@code MODULOS}.
  */
 @RestController
 @RequestMapping("/process-stages")
@@ -57,7 +55,8 @@ public class ProcessStageController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('PROCESS_STAGES:CONSULTAR')")
-    public ResponseEntity<ProcessStageDTO> obtenerPorId(@PathVariable Long id) throws EntityNotFoundException {
+    public ResponseEntity<ProcessStageDTO> obtenerPorId(@PathVariable Long id)
+            throws EntityNotFoundException {
         return ResponseEntity.ok(mapper.domainToDto(service.obtenerPorId(id)));
     }
 
@@ -70,9 +69,11 @@ public class ProcessStageController {
 
     @GetMapping("/business-process/{idBusinessProcess}")
     @PreAuthorize("hasAuthority('PROCESS_STAGES:LISTAR')")
-    public ResponseEntity<List<ProcessStageDTO>> listarPorProceso(@PathVariable Long idBusinessProcess) {
-        return ResponseEntity.ok(service.listarPorProceso(idBusinessProcess).stream()
-                .map(mapper::domainToDto)
-                .toList());
+    public ResponseEntity<List<ProcessStageDTO>> listarPorProceso(
+            @PathVariable Long idBusinessProcess) {
+        return ResponseEntity.ok(
+                service.listarPorProceso(idBusinessProcess).stream()
+                        .map(mapper::domainToDto)
+                        .toList());
     }
 }

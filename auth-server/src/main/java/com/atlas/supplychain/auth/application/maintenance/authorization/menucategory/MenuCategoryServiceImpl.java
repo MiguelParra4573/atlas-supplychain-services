@@ -7,9 +7,8 @@ import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
 import com.atlas.supplychain.auth.domain.shared.query.FilterCriterion;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class MenuCategoryServiceImpl implements MenuCategoryService {
@@ -26,8 +25,10 @@ public class MenuCategoryServiceImpl implements MenuCategoryService {
     }
 
     @Override
-    public void actualizar(MenuCategory category) throws EntityNotFoundException, DuplicateRecordException {
-        MenuCategory existente = repository.obtenerPorId(category.getIdCompany(), category.getIdMenuCategory());
+    public void actualizar(MenuCategory category)
+            throws EntityNotFoundException, DuplicateRecordException {
+        MenuCategory existente =
+                repository.obtenerPorId(category.getIdCompany(), category.getIdMenuCategory());
         if (!existente.getCode().equals(category.getCode())) {
             validarCodigoUnico(category);
         }
@@ -35,7 +36,8 @@ public class MenuCategoryServiceImpl implements MenuCategoryService {
     }
 
     @Override
-    public MenuCategory obtenerPorId(String idCompany, Long idMenuCategory) throws EntityNotFoundException {
+    public MenuCategory obtenerPorId(String idCompany, Long idMenuCategory)
+            throws EntityNotFoundException {
         return repository.obtenerPorId(idCompany, idMenuCategory);
     }
 
@@ -50,13 +52,15 @@ public class MenuCategoryServiceImpl implements MenuCategoryService {
     }
 
     @Override
-    public PagedResult<MenuCategory> listarPaginado(String idCompany, List<FilterCriterion> filters, PageQuery pageQuery) {
+    public PagedResult<MenuCategory> listarPaginado(
+            String idCompany, List<FilterCriterion> filters, PageQuery pageQuery) {
         return repository.listarPaginado(idCompany, filters, pageQuery);
     }
 
     private void validarCodigoUnico(MenuCategory category) throws DuplicateRecordException {
         if (repository.existsByCode(category.getIdCompany(), category.getCode())) {
-            throw new DuplicateRecordException("Ya existe la categoría '" + category.getCode() + "' en esta empresa");
+            throw new DuplicateRecordException(
+                    "Ya existe la categoría '" + category.getCode() + "' en esta empresa");
         }
     }
 }

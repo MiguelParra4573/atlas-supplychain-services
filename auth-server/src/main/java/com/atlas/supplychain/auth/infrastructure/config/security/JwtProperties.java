@@ -14,10 +14,11 @@ public class JwtProperties {
     private String publicKeyPath;
 
     private String issuer;
+
     /** {@code kid} del header JWT; debe coincidir con el publicado en el JWKS. */
     private String keyId = "auth-server-rsa-1";
+
     private Integer accessTokenTtlMinutes;
     private Integer refreshTokenTtlDays;
     private Long serviceTokenTtlSeconds = 60L;
 }
-

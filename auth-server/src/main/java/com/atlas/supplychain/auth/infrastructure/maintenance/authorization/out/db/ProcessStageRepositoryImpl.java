@@ -1,5 +1,7 @@
 package com.atlas.supplychain.auth.infrastructure.maintenance.authorization.out.db;
 
+import static com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.QProcessStageEntity.processStageEntity;
+
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.ProcessStage;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.ProcessStageRepository;
@@ -7,18 +9,15 @@ import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entit
 import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.out.mappers.ProcessStageMapper;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
-import static com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.QProcessStageEntity.processStageEntity;
-
 /**
- * No extiende {@code AbstractQueryDslRepository} por el mismo motivo que
- * {@code BusinessProcessRepositoryImpl}: {@code process_stage} es catálogo global del proveedor,
- * sin {@code id_company} -- heredar el guard de tenant haría fallar toda consulta.
+ * No extiende {@code AbstractQueryDslRepository} por el mismo motivo que {@code
+ * BusinessProcessRepositoryImpl}: {@code process_stage} es catálogo global del proveedor, sin
+ * {@code id_company} -- heredar el guard de tenant haría fallar toda consulta.
  */
 @Repository
 @Transactional
@@ -63,7 +62,9 @@ public class ProcessStageRepositoryImpl implements ProcessStageRepository {
     public List<ProcessStage> listar() {
         return queryFactory
                 .selectFrom(processStageEntity)
-                .orderBy(processStageEntity.idBusinessProcess.asc(), processStageEntity.sequence.asc())
+                .orderBy(
+                        processStageEntity.idBusinessProcess.asc(),
+                        processStageEntity.sequence.asc())
                 .fetch()
                 .stream()
                 .map(mapper::entityToDomain)
@@ -85,27 +86,37 @@ public class ProcessStageRepositoryImpl implements ProcessStageRepository {
     @Override
     public boolean existsByCodeEnProceso(Long idBusinessProcess, String code) {
         return queryFactory
-                .selectOne()
-                .from(processStageEntity)
-                .where(processStageEntity.idBusinessProcess.eq(idBusinessProcess)
-                        .and(processStageEntity.code.eq(code)))
-                .fetchFirst() != null;
+                        .selectOne()
+                        .from(processStageEntity)
+                        .where(
+                                processStageEntity
+                                        .idBusinessProcess
+                                        .eq(idBusinessProcess)
+                                        .and(processStageEntity.code.eq(code)))
+                        .fetchFirst()
+                != null;
     }
 
     @Override
     public boolean existsBySequenceEnProceso(Long idBusinessProcess, Integer sequence) {
         return queryFactory
-                .selectOne()
-                .from(processStageEntity)
-                .where(processStageEntity.idBusinessProcess.eq(idBusinessProcess)
-                        .and(processStageEntity.sequence.eq(sequence)))
-                .fetchFirst() != null;
+                        .selectOne()
+                        .from(processStageEntity)
+                        .where(
+                                processStageEntity
+                                        .idBusinessProcess
+                                        .eq(idBusinessProcess)
+                                        .and(processStageEntity.sequence.eq(sequence)))
+                        .fetchFirst()
+                != null;
     }
 
     private ProcessStageEntity buscar(Long idProcessStage) throws EntityNotFoundException {
-        ProcessStageEntity entity = idProcessStage == null ? null : em.find(ProcessStageEntity.class, idProcessStage);
+        ProcessStageEntity entity =
+                idProcessStage == null ? null : em.find(ProcessStageEntity.class, idProcessStage);
         if (entity == null) {
-            throw new EntityNotFoundException("Etapa de proceso no encontrada ID " + idProcessStage);
+            throw new EntityNotFoundException(
+                    "Etapa de proceso no encontrada ID " + idProcessStage);
         }
         return entity;
     }

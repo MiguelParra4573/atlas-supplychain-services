@@ -4,6 +4,8 @@ import com.atlas.supplychain.auth.application.audit.dto.AuditEventCommand;
 import com.atlas.supplychain.auth.infrastructure.common.messaging.EventEnvelope;
 import com.atlas.supplychain.auth.infrastructure.config.messaging.MessagingProperties;
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.Instant;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -15,15 +17,13 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 
-import java.time.Instant;
-import java.util.UUID;
-
 /**
  * Consume el {@link AuditEventoInternoEvent} y publica {@code AuditoriaRegistrada} en el exchange
- * {@code auth.events}. Un futuro consumidor de auditoría de la plataforma se suscribe a esa routing key.
+ * {@code auth.events}. Un futuro consumidor de auditoría de la plataforma se suscribe a esa routing
+ * key.
  *
- * <p>{@code @TransactionalEventListener(phase = AFTER_COMMIT, fallbackExecution = true)}, síncrono a
- * propósito: nunca se audita algo que hizo rollback, también se ejecuta sin transacción (login) y
+ * <p>{@code @TransactionalEventListener(phase = AFTER_COMMIT, fallbackExecution = true)}, síncrono
+ * a propósito: nunca se audita algo que hizo rollback, también se ejecuta sin transacción (login) y
  * mantiene disponible el {@link RequestContextHolder} para completar {@code ip}/{@code userAgent}.
  *
  * <p>Best-effort: un solo intento y ninguna excepción se propaga -- un fallo del broker nunca debe
@@ -55,23 +55,27 @@ public class AuditRabbitPublisher {
         payload.put("userAgent", request != null ? request.getHeader(USER_AGENT_HEADER) : null);
         payload.put("requestId", request != null ? request.getHeader(REQUEST_ID_HEADER) : null);
 
-        EventEnvelope envelope = new EventEnvelope(
-                UUID.randomUUID().toString(),
-                EVENT_TYPE,
-                1,
-                Instant.now(),
-                cmd.entidadId(),
-                cmd.entidadTipo(),
-                correlationId,
-                null,
-                properties.getProducer(),
-                payload);
+        EventEnvelope envelope =
+                new EventEnvelope(
+                        UUID.randomUUID().toString(),
+                        EVENT_TYPE,
+                        1,
+                        Instant.now(),
+                        cmd.entidadId(),
+                        cmd.entidadTipo(),
+                        correlationId,
+                        null,
+                        properties.getProducer(),
+                        payload);
 
         try {
             rabbitTemplate.convertAndSend(properties.getEventsExchange(), EVENT_TYPE, envelope);
         } catch (Exception e) {
-            log.warn("No se pudo publicar el evento de auditoría [{}] para {}: {}",
-                    cmd.accionNombre(), cmd.entidadId(), e.toString());
+            log.warn(
+                    "No se pudo publicar el evento de auditoría [{}] para {}: {}",
+                    cmd.accionNombre(),
+                    cmd.entidadId(),
+                    e.toString());
         }
     }
 

@@ -16,10 +16,9 @@ import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
 import com.atlas.supplychain.auth.domain.shared.query.FilterCriterion;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class GrantedPermissionServiceImpl implements GrantedPermissionService {
@@ -35,34 +34,51 @@ public class GrantedPermissionServiceImpl implements GrantedPermissionService {
     private final CurrentActor currentActor;
 
     @Override
-    public void asignarPermisoARol(String idCompany, Long idRol, Long idOperation) throws EntityNotFoundException {
+    public void asignarPermisoARol(String idCompany, Long idRol, Long idOperation)
+            throws EntityNotFoundException {
         Role role = roleRepository.obtenerRolPorId(idCompany, idRol);
         Operation operation = operationRepository.obtenerOperacionPorId(idCompany, idOperation);
 
         if (repository.obtenerPorRolYOperacion(idCompany, idRol, idOperation).isPresent()) {
             throw new DuplicateRecordException(
-                    "El rol ID %d ya tiene concedida la operación ID %d".formatted(idRol, idOperation));
+                    "El rol ID %d ya tiene concedida la operación ID %d"
+                            .formatted(idRol, idOperation));
         }
 
-        GrantedPermission permiso = GrantedPermission.builder()
-                .idCompany(idCompany)
-                .role(role)
-                .operation(operation)
-                .build();
+        GrantedPermission permiso =
+                GrantedPermission.builder()
+                        .idCompany(idCompany)
+                        .role(role)
+                        .operation(operation)
+                        .build();
         repository.crearPermiso(permiso);
-        // GrantedPermissionRepositoryImpl#crearPermiso descarta el retorno de save(...) (idGrantedPermission
-        // generado no vuelve a este objeto de dominio), y a diferencia de Role, GrantedPermission no tiene
-        // un identificador natural propio: se usa la combinacion rol+operacion como mejor id disponible.
-        auditar("CREATE", "ASIGNAR_PERMISO", "ROL:" + idRol + ":OPERACION:" + idOperation, "HIGH",
-                "Permiso concedido: rol " + idRol + " operacion " + idOperation, idCompany);
+        // GrantedPermissionRepositoryImpl#crearPermiso descarta el retorno de save(...)
+        // (idGrantedPermission
+        // generado no vuelve a este objeto de dominio), y a diferencia de Role, GrantedPermission
+        // no tiene
+        // un identificador natural propio: se usa la combinacion rol+operacion como mejor id
+        // disponible.
+        auditar(
+                "CREATE",
+                "ASIGNAR_PERMISO",
+                "ROL:" + idRol + ":OPERACION:" + idOperation,
+                "HIGH",
+                "Permiso concedido: rol " + idRol + " operacion " + idOperation,
+                idCompany);
     }
 
     @Override
-    public void revocarPermiso(String idCompany, Long idGrantedPermission) throws EntityNotFoundException {
+    public void revocarPermiso(String idCompany, Long idGrantedPermission)
+            throws EntityNotFoundException {
         repository.obtenerPermisoPorId(idCompany, idGrantedPermission);
         repository.eliminarPermiso(idCompany, idGrantedPermission);
-        auditar("DELETE", "REVOCAR_PERMISO", String.valueOf(idGrantedPermission), "HIGH",
-                "Permiso revocado ID " + idGrantedPermission, idCompany);
+        auditar(
+                "DELETE",
+                "REVOCAR_PERMISO",
+                String.valueOf(idGrantedPermission),
+                "HIGH",
+                "Permiso revocado ID " + idGrantedPermission,
+                idCompany);
     }
 
     @Override
@@ -71,7 +87,8 @@ public class GrantedPermissionServiceImpl implements GrantedPermissionService {
     }
 
     @Override
-    public GrantedPermission obtenerPermisoPorId(String idCompany, Long idGrantedPermission) throws EntityNotFoundException {
+    public GrantedPermission obtenerPermisoPorId(String idCompany, Long idGrantedPermission)
+            throws EntityNotFoundException {
         return repository.obtenerPermisoPorId(idCompany, idGrantedPermission);
     }
 
@@ -81,18 +98,35 @@ public class GrantedPermissionServiceImpl implements GrantedPermissionService {
     }
 
     @Override
-    public PagedResult<GrantedPermission> listarPermisosPaginados(String idCompany, List<FilterCriterion> filters, PageQuery pageQuery) {
+    public PagedResult<GrantedPermission> listarPermisosPaginados(
+            String idCompany, List<FilterCriterion> filters, PageQuery pageQuery) {
         return repository.listarPermisosPaginados(idCompany, filters, pageQuery);
     }
 
-    private void auditar(String accionTipo, String accionNombre, String entidadId, String severity,
-                          String resumen, String fallbackCompanyId) {
+    private void auditar(
+            String accionTipo,
+            String accionNombre,
+            String entidadId,
+            String severity,
+            String resumen,
+            String fallbackCompanyId) {
         Actor actor = currentActor.actorActual();
         String companyId = actor != null ? actor.idCompany() : fallbackCompanyId;
         String userId = actor != null ? actor.idUser() : null;
         String username = actor != null ? actor.username() : null;
         String rolPrincipal = actor != null ? actor.rolPrincipal() : null;
-        auditTrail.registrar(new AuditEventCommand(accionTipo, accionNombre, ENTIDAD_TIPO_PERMISO, entidadId,
-                MODULO_ADMINISTRACION, severity, companyId, userId, username, rolPrincipal, resumen));
+        auditTrail.registrar(
+                new AuditEventCommand(
+                        accionTipo,
+                        accionNombre,
+                        ENTIDAD_TIPO_PERMISO,
+                        entidadId,
+                        MODULO_ADMINISTRACION,
+                        severity,
+                        companyId,
+                        userId,
+                        username,
+                        rolPrincipal,
+                        resumen));
     }
 }

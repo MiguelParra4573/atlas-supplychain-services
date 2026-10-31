@@ -20,5 +20,4 @@ public class Agency {
     private String address;
 
     private boolean state;
-
 }

@@ -5,7 +5,6 @@ import com.atlas.supplychain.auth.domain.maintenance.organization.model.Company;
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
 import com.atlas.supplychain.auth.domain.shared.query.FilterCriterion;
-
 import java.util.List;
 
 public interface CompanyRepository {
@@ -20,7 +19,8 @@ public interface CompanyRepository {
 
     List<Company> listarCompaniesPorState(boolean state);
 
-    PagedResult<Company> listarCompaniesPaginadas(List<FilterCriterion> filters, PageQuery pageQuery);
+    PagedResult<Company> listarCompaniesPaginadas(
+            List<FilterCriterion> filters, PageQuery pageQuery);
 
     boolean existsByAlias(String alias);
 

@@ -1,7 +1,6 @@
 package com.atlas.supplychain.auth.application.security.contracts;
 
 import com.atlas.supplychain.auth.application.security.dto.ResetTokenData;
-
 import java.time.Instant;
 import java.util.Optional;
 

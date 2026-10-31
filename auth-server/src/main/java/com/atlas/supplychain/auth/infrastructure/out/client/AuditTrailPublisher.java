@@ -7,9 +7,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 /**
- * Implementación por defecto de {@link AuditTrail} inyectada en los servicios de {@code application/}.
- * No habla con el broker: publica un evento interno y retorna de inmediato. El envío real a RabbitMQ
- * lo hace {@link AuditRabbitPublisher}, que escucha este evento después del commit.
+ * Implementación por defecto de {@link AuditTrail} inyectada en los servicios de {@code
+ * application/}. No habla con el broker: publica un evento interno y retorna de inmediato. El envío
+ * real a RabbitMQ lo hace {@link AuditRabbitPublisher}, que escucha este evento después del commit.
  */
 @Component
 @RequiredArgsConstructor

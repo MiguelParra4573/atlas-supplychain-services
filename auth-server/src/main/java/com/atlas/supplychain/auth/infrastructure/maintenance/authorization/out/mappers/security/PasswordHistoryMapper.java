@@ -10,5 +10,4 @@ public interface PasswordHistoryMapper {
     PasswordHistory entityToDomain(PasswordHistoryEntity entity);
 
     PasswordHistoryEntity domainToEntity(PasswordHistory domain);
-
 }

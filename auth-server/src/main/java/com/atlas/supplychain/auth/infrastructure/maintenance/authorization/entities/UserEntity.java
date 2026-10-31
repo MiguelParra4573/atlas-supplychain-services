@@ -1,10 +1,9 @@
 package com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.io.Serializable;
 import java.time.Instant;
+import lombok.*;
 
 @Entity
 @Table(name = "users", schema = "auth")
@@ -56,5 +55,4 @@ public class UserEntity implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_role", nullable = false)
     private RoleEntity roleEntity;
-
 }

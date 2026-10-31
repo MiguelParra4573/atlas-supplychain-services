@@ -1,12 +1,10 @@
 package com.atlas.supplychain.auth.domain.maintenance.authorization.repositories;
 
-
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.User;
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
 import com.atlas.supplychain.auth.domain.shared.query.FilterCriterion;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -22,10 +20,9 @@ public interface UserRepository {
 
     /**
      * Login real: {@code username} es el campo que el usuario final escribe en el formulario
-     * (independiente de {@code email}), a diferencia de {@code idUser} (PK interna, generada por
-     * el backend, nunca visible como credencial). Sin filtro de empresa por el mismo motivo que
-     * {@link #findByIdUsuarioWithAuthorities(String)}: no hay tenant disponible antes de
-     * autenticar.
+     * (independiente de {@code email}), a diferencia de {@code idUser} (PK interna, generada por el
+     * backend, nunca visible como credencial). Sin filtro de empresa por el mismo motivo que {@link
+     * #findByIdUsuarioWithAuthorities(String)}: no hay tenant disponible antes de autenticar.
      */
     Optional<User> findByUsernameWithAuthorities(String username);
 
@@ -37,8 +34,8 @@ public interface UserRepository {
 
     List<User> listarUsuariosPorCompany(String idCompany);
 
-    PagedResult<User> listarUsuariosPaginadosPorFiltros(String idCompany, List<FilterCriterion> filters, PageQuery pageQuery);
+    PagedResult<User> listarUsuariosPaginadosPorFiltros(
+            String idCompany, List<FilterCriterion> filters, PageQuery pageQuery);
 
     boolean existsByRole(String idCompany, Long idRol);
-
 }

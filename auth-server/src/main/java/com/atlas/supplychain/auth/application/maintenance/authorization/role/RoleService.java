@@ -6,7 +6,6 @@ import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Role;
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
 import com.atlas.supplychain.auth.domain.shared.query.FilterCriterion;
-
 import java.util.List;
 
 public interface RoleService {
@@ -21,7 +20,8 @@ public interface RoleService {
 
     List<Role> listarRolesPorCompany(String idCompany);
 
-    PagedResult<Role> listarRolesPaginados(String idCompany, List<FilterCriterion> filters, PageQuery pageQuery);
+    PagedResult<Role> listarRolesPaginados(
+            String idCompany, List<FilterCriterion> filters, PageQuery pageQuery);
 
     /** Qué módulos del menú ve cada rol de la empresa, deducido de sus permisos (Spec 1.2). */
     List<RoleMenuSummaryView> resumenDeMenuPorRol(String idCompany);

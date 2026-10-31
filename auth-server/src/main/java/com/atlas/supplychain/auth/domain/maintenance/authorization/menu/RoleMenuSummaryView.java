@@ -8,13 +8,12 @@ import java.util.List;
  * <p>No es una relación almacenada: los módulos no se asignan a roles. Se deduce de los permisos
  * concedidos, aplicando el mismo criterio de vigencia que {@code User.esVigente} -- operación
  * activa y módulo activo. Existe para que la pantalla de roles pueda responder "¿qué va a ver este
- * rol?" sin pedir los permisos rol por rol, que era una llamada por fila.</p>
+ * rol?" sin pedir los permisos rol por rol, que era una llamada por fila.
  *
- * <p>{@code screenCount} cuenta {@code resource} distintos, no operaciones: conceder
- * {@code EMPRESAS:CREAR} y {@code EMPRESAS:LISTAR} es una sola pantalla en el menú.</p>
+ * <p>{@code screenCount} cuenta {@code resource} distintos, no operaciones: conceder {@code
+ * EMPRESAS:CREAR} y {@code EMPRESAS:LISTAR} es una sola pantalla en el menú.
  */
 public record RoleMenuSummaryView(Long idRole, List<RoleMenuModuleView> modules) {
 
-    public record RoleMenuModuleView(Long idModule, String name, int screenCount) {
-    }
+    public record RoleMenuModuleView(Long idModule, String name, int screenCount) {}
 }

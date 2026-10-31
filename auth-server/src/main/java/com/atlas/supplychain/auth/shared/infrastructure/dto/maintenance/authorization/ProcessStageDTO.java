@@ -17,23 +17,23 @@ public class ProcessStageDTO {
 
     private Long idProcessStage;
 
-    @NotNull(groups = {Crear.class, Actualizar.class})
-    private Long idBusinessProcess;
+    @NotNull(groups = {Crear.class, Actualizar.class}) private Long idBusinessProcess;
 
-    @NotBlank(groups = {Crear.class, Actualizar.class})
-    @Size(max = 50, groups = {Crear.class, Actualizar.class})
+    @NotBlank(groups = {Crear.class, Actualizar.class}) @Size(
+            max = 50,
+            groups = {Crear.class, Actualizar.class})
     private String code;
 
-    @NotBlank(groups = {Crear.class, Actualizar.class})
-    @Size(max = 150, groups = {Crear.class, Actualizar.class})
+    @NotBlank(groups = {Crear.class, Actualizar.class}) @Size(
+            max = 150,
+            groups = {Crear.class, Actualizar.class})
     private String name;
 
-    @NotNull(groups = {Crear.class, Actualizar.class})
-    private Integer sequence;
+    @NotNull(groups = {Crear.class, Actualizar.class}) private Integer sequence;
 
-    @NotNull(groups = {Crear.class, Actualizar.class})
-    private Boolean state;
+    @NotNull(groups = {Crear.class, Actualizar.class}) private Boolean state;
 
     public interface Crear {}
+
     public interface Actualizar {}
 }

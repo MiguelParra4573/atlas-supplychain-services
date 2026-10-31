@@ -2,7 +2,6 @@ package com.atlas.supplychain.auth.application.maintenance.authorization.screeng
 
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.ScreenGroup;
-
 import java.util.List;
 
 public interface ScreenGroupService {
@@ -13,5 +12,6 @@ public interface ScreenGroupService {
 
     void eliminar(String idCompany, Long idScreenGroup) throws EntityNotFoundException;
 
-    List<ScreenGroup> listarPorModulo(String idCompany, Long idModule) throws EntityNotFoundException;
+    List<ScreenGroup> listarPorModulo(String idCompany, Long idModule)
+            throws EntityNotFoundException;
 }

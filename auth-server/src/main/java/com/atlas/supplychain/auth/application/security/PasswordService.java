@@ -5,6 +5,6 @@ import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundExcepti
 
 public interface PasswordService {
 
-    void changeMyPassword(String idUser, String idCompany, ChangePasswordRequest req) throws EntityNotFoundException;
-
+    void changeMyPassword(String idUser, String idCompany, ChangePasswordRequest req)
+            throws EntityNotFoundException;
 }

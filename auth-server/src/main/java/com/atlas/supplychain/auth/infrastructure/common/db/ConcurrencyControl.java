@@ -11,5 +11,4 @@ public interface ConcurrencyControl {
     public Long findById(String id);
 
     public void updateTimestamp(String id);
-
 }

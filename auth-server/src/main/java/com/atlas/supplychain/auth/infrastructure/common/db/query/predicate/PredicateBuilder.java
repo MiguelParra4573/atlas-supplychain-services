@@ -8,8 +8,5 @@ public interface PredicateBuilder {
 
     boolean supports(Class<?> type);
 
-    BooleanExpression build(
-            PathBuilder<?> root,
-            FilterCriterion fc
-    );
+    BooleanExpression build(PathBuilder<?> root, FilterCriterion fc);
 }

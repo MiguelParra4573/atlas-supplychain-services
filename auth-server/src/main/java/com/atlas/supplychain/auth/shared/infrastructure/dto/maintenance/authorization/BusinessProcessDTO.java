@@ -17,23 +17,27 @@ public class BusinessProcessDTO {
 
     private Long idBusinessProcess;
 
-    @NotBlank(groups = {Crear.class, Actualizar.class})
-    @Size(max = 50, groups = {Crear.class, Actualizar.class})
+    @NotBlank(groups = {Crear.class, Actualizar.class}) @Size(
+            max = 50,
+            groups = {Crear.class, Actualizar.class})
     private String code;
 
-    @NotBlank(groups = {Crear.class, Actualizar.class})
-    @Size(max = 150, groups = {Crear.class, Actualizar.class})
+    @NotBlank(groups = {Crear.class, Actualizar.class}) @Size(
+            max = 150,
+            groups = {Crear.class, Actualizar.class})
     private String name;
 
-    @Size(max = 500, groups = {Crear.class, Actualizar.class})
+    @Size(
+            max = 500,
+            groups = {Crear.class, Actualizar.class})
     private String description;
 
-    @NotNull(groups = {Crear.class, Actualizar.class})
-    private Boolean state;
+    @NotNull(groups = {Crear.class, Actualizar.class}) private Boolean state;
 
     /** Solo en la respuesta de "procesos de mi empresa": si está activo para esa empresa. */
     private Boolean active;
 
     public interface Crear {}
+
     public interface Actualizar {}
 }

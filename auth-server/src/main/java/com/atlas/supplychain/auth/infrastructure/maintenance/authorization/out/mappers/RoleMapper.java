@@ -5,7 +5,9 @@ import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entit
 import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authorization.RoleDTO;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring", uses = { GrantedPermissionMapper.class })
+@Mapper(
+        componentModel = "spring",
+        uses = {GrantedPermissionMapper.class})
 public interface RoleMapper {
 
     @Mapping(source = "grantedPermissionEntities", target = "grantedPermissions")

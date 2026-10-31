@@ -1,5 +1,8 @@
 package com.atlas.supplychain.auth.infrastructure.maintenance.authorization.out.db;
 
+import static com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.QBusinessProcessEntity.businessProcessEntity;
+import static com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.QCompanyProcessEntity.companyProcessEntity;
+
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.BusinessProcess;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.CompanyProcess;
@@ -10,15 +13,11 @@ import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entit
 import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.out.mappers.BusinessProcessMapper;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
+import java.time.Instant;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.List;
-
-import static com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.QBusinessProcessEntity.businessProcessEntity;
-import static com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.QCompanyProcessEntity.companyProcessEntity;
 
 /**
  * No extiende {@code AbstractQueryDslRepository} a propósito: esa clase base garantiza aislamiento
@@ -27,7 +26,7 @@ import static com.atlas.supplychain.auth.infrastructure.maintenance.authorizatio
  * empresa. Heredarla hacía fallar toda consulta con {@code TenantScopeRequiredException}.
  *
  * <p>El guard sigue vigente donde sí corresponde: las consultas sobre {@code company_process}, que
- * sí es por empresa, validan {@code idCompany} explícitamente en {@link #requireCompany}.</p>
+ * sí es por empresa, validan {@code idCompany} explícitamente en {@link #requireCompany}.
  */
 @Repository
 @Transactional
@@ -38,7 +37,8 @@ public class BusinessProcessRepositoryImpl implements BusinessProcessRepository 
     private final EntityManager em;
     private final JPAQueryFactory queryFactory;
 
-    public BusinessProcessRepositoryImpl(EntityManager entityManager, BusinessProcessMapper mapper) {
+    public BusinessProcessRepositoryImpl(
+            EntityManager entityManager, BusinessProcessMapper mapper) {
         this.em = entityManager;
         this.mapper = mapper;
         this.queryFactory = new JPAQueryFactory(entityManager);
@@ -82,10 +82,11 @@ public class BusinessProcessRepositoryImpl implements BusinessProcessRepository 
     @Override
     public boolean existsByCode(String code) {
         return queryFactory
-                .selectOne()
-                .from(businessProcessEntity)
-                .where(businessProcessEntity.code.eq(code))
-                .fetchFirst() != null;
+                        .selectOne()
+                        .from(businessProcessEntity)
+                        .where(businessProcessEntity.code.eq(code))
+                        .fetchFirst()
+                != null;
     }
 
     @Override
@@ -106,24 +107,32 @@ public class BusinessProcessRepositoryImpl implements BusinessProcessRepository 
      * se dio de baja un proceso, eso lo cubre `ms-auditoria` (Spec 1.0 §Riesgos).
      */
     @Override
-    public void activar(String idCompany, Long idBusinessProcess, boolean active) throws EntityNotFoundException {
+    public void activar(String idCompany, Long idBusinessProcess, boolean active)
+            throws EntityNotFoundException {
         requireCompany(idCompany);
         // Validar acá y no en el service: así la comprobación y el upsert corren en la misma
         // transacción (la capa de aplicación no puede declararlas, ver ImportControl).
         buscar(idBusinessProcess);
-        CompanyProcessEntity existente = queryFactory
-                .selectFrom(companyProcessEntity)
-                .where(companyProcessEntity.idCompany.eq(idCompany)
-                        .and(companyProcessEntity.idBusinessProcess.eq(idBusinessProcess)))
-                .fetchOne();
+        CompanyProcessEntity existente =
+                queryFactory
+                        .selectFrom(companyProcessEntity)
+                        .where(
+                                companyProcessEntity
+                                        .idCompany
+                                        .eq(idCompany)
+                                        .and(
+                                                companyProcessEntity.idBusinessProcess.eq(
+                                                        idBusinessProcess)))
+                        .fetchOne();
 
         if (existente == null) {
-            em.persist(CompanyProcessEntity.builder()
-                    .idCompany(idCompany)
-                    .idBusinessProcess(idBusinessProcess)
-                    .active(active)
-                    .activatedAt(Instant.now())
-                    .build());
+            em.persist(
+                    CompanyProcessEntity.builder()
+                            .idCompany(idCompany)
+                            .idBusinessProcess(idBusinessProcess)
+                            .active(active)
+                            .activatedAt(Instant.now())
+                            .build());
             return;
         }
 
@@ -144,9 +153,13 @@ public class BusinessProcessRepositoryImpl implements BusinessProcessRepository 
     }
 
     private BusinessProcessEntity buscar(Long idBusinessProcess) throws EntityNotFoundException {
-        BusinessProcessEntity entity = idBusinessProcess == null ? null : em.find(BusinessProcessEntity.class, idBusinessProcess);
+        BusinessProcessEntity entity =
+                idBusinessProcess == null
+                        ? null
+                        : em.find(BusinessProcessEntity.class, idBusinessProcess);
         if (entity == null) {
-            throw new EntityNotFoundException("Proceso de negocio no encontrado ID " + idBusinessProcess);
+            throw new EntityNotFoundException(
+                    "Proceso de negocio no encontrado ID " + idBusinessProcess);
         }
         return entity;
     }

@@ -11,5 +11,4 @@ public interface PasswordResetService {
     ForgotPasswordResponse forgot(ForgotPasswordRequest req);
 
     GenericMessageResponse reset(ResetPasswordRequest req) throws EntityNotFoundException;
-
 }

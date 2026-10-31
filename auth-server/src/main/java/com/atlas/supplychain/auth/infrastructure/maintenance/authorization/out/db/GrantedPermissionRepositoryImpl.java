@@ -1,5 +1,7 @@
 package com.atlas.supplychain.auth.infrastructure.maintenance.authorization.out.db;
 
+import static com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.QGrantedPermissionEntity.grantedPermissionEntity;
+
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.GrantedPermission;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Role;
@@ -7,21 +9,18 @@ import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
 import com.atlas.supplychain.auth.domain.shared.query.FilterCriterion;
-import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.GrantedPermissionEntity;
-import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.RoleEntity;
 import com.atlas.supplychain.auth.infrastructure.common.db.AbstractQueryDslRepository;
 import com.atlas.supplychain.auth.infrastructure.common.db.query.predicate.PredicateBuilderRegistry;
+import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.GrantedPermissionEntity;
+import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.RoleEntity;
 import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.out.mappers.GrantedPermissionMapper;
 import jakarta.persistence.EntityManager;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Optional;
-
-import static com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.QGrantedPermissionEntity.grantedPermissionEntity;
 
 @Repository
 @Transactional
@@ -47,16 +46,20 @@ public class GrantedPermissionRepositoryImpl
 
     @Override
     public void actualizarPermiso(GrantedPermission permiso) throws EntityNotFoundException {
-        if (findByIdAndCompany(permiso.getIdCompany(), permiso.getIdGrantedPermission()).isEmpty()) {
-            throw new EntityNotFoundException(String.format("No se encontró el permiso con ID %d para actualizar.", permiso.getIdGrantedPermission()));
+        if (findByIdAndCompany(permiso.getIdCompany(), permiso.getIdGrantedPermission())
+                .isEmpty()) {
+            throw new EntityNotFoundException(
+                    String.format(
+                            "No se encontró el permiso con ID %d para actualizar.",
+                            permiso.getIdGrantedPermission()));
         }
         this.save(toEntityConRole(permiso));
     }
 
     /**
-     * GrantedPermissionMapper#domainToEntity ignora roleEntity a propósito: se invoca en
-     * cascada desde RoleMapper#domainToEntity (Role.grantedPermissions -> grantedPermissionEntities)
-     * y mapear el role de vuelta ahí formaría un ciclo infinito. Al guardar un GrantedPermission
+     * GrantedPermissionMapper#domainToEntity ignora roleEntity a propósito: se invoca en cascada
+     * desde RoleMapper#domainToEntity (Role.grantedPermissions -> grantedPermissionEntities) y
+     * mapear el role de vuelta ahí formaría un ciclo infinito. Al guardar un GrantedPermission
      * suelto (fuera de esa cascada) hay que completar la referencia al rol a mano.
      */
     private GrantedPermissionEntity toEntityConRole(GrantedPermission permiso) {
@@ -76,59 +79,77 @@ public class GrantedPermissionRepositoryImpl
         GrantedPermission permiso = mapper.entityToDomain(entity);
         RoleEntity roleEntity = entity.getRoleEntity();
         if (roleEntity != null) {
-            permiso.setRole(Role.builder().idRol(roleEntity.getIdRol()).name(roleEntity.getName()).build());
+            permiso.setRole(
+                    Role.builder().idRol(roleEntity.getIdRol()).name(roleEntity.getName()).build());
         }
         return permiso;
     }
 
     @Override
-    public GrantedPermission obtenerPermisoPorId(String idCompany, Long idGrantedPermission) throws EntityNotFoundException {
+    public GrantedPermission obtenerPermisoPorId(String idCompany, Long idGrantedPermission)
+            throws EntityNotFoundException {
         return findByIdAndCompany(idCompany, idGrantedPermission)
                 .map(this::entityToDomainConRole)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Permission not found ID " + idGrantedPermission)
-                );
+                .orElseThrow(
+                        () ->
+                                new EntityNotFoundException(
+                                        "Permission not found ID " + idGrantedPermission));
     }
 
     @Override
-    public void eliminarPermiso(String idCompany, Long idGrantedPermission) throws EntityNotFoundException {
-        GrantedPermissionEntity permissionEntity = findByIdAndCompany(idCompany, idGrantedPermission)
-                .orElseThrow(() -> new EntityNotFoundException("Permission not found ID " + idGrantedPermission));
+    public void eliminarPermiso(String idCompany, Long idGrantedPermission)
+            throws EntityNotFoundException {
+        GrantedPermissionEntity permissionEntity =
+                findByIdAndCompany(idCompany, idGrantedPermission)
+                        .orElseThrow(
+                                () ->
+                                        new EntityNotFoundException(
+                                                "Permission not found ID " + idGrantedPermission));
         this.delete(permissionEntity);
     }
 
     @Override
     public List<GrantedPermission> listarPermisosPorRol(String idCompany, Long idRol) {
         requireCompany(idCompany);
-        List<GrantedPermissionEntity> list = getQueryFactory()
-                .selectFrom(grantedPermissionEntity)
-                .where(grantedPermissionEntity.idCompany.eq(idCompany)
-                        .and(grantedPermissionEntity.roleEntity.idRol.eq(idRol)))
-                .fetch();
+        List<GrantedPermissionEntity> list =
+                getQueryFactory()
+                        .selectFrom(grantedPermissionEntity)
+                        .where(
+                                grantedPermissionEntity
+                                        .idCompany
+                                        .eq(idCompany)
+                                        .and(grantedPermissionEntity.roleEntity.idRol.eq(idRol)))
+                        .fetch();
 
         return list.stream().map(this::entityToDomainConRole).toList();
     }
 
     @Override
     public PagedResult<GrantedPermission> listarPermisosPaginados(
-            String idCompany,
-            List<FilterCriterion> filters,
-            PageQuery pageQuery) {
+            String idCompany, List<FilterCriterion> filters, PageQuery pageQuery) {
 
-        Page<GrantedPermissionEntity> result = filterAndSortPaged(filters, pageQuery.sorts(), toPageable(pageQuery), idCompany);
+        Page<GrantedPermissionEntity> result =
+                filterAndSortPaged(filters, pageQuery.sorts(), toPageable(pageQuery), idCompany);
 
         return toPagedResult(result.map(this::entityToDomainConRole));
     }
 
     @Override
-    public Optional<GrantedPermission> obtenerPorRolYOperacion(String idCompany, Long idRol, Long idOperation) {
+    public Optional<GrantedPermission> obtenerPorRolYOperacion(
+            String idCompany, Long idRol, Long idOperation) {
         requireCompany(idCompany);
-        GrantedPermissionEntity entity = getQueryFactory()
-                .selectFrom(grantedPermissionEntity)
-                .where(grantedPermissionEntity.idCompany.eq(idCompany)
-                        .and(grantedPermissionEntity.roleEntity.idRol.eq(idRol))
-                        .and(grantedPermissionEntity.operationEntity.idOperation.eq(idOperation)))
-                .fetchFirst();
+        GrantedPermissionEntity entity =
+                getQueryFactory()
+                        .selectFrom(grantedPermissionEntity)
+                        .where(
+                                grantedPermissionEntity
+                                        .idCompany
+                                        .eq(idCompany)
+                                        .and(grantedPermissionEntity.roleEntity.idRol.eq(idRol))
+                                        .and(
+                                                grantedPermissionEntity.operationEntity.idOperation
+                                                        .eq(idOperation)))
+                        .fetchFirst();
         return Optional.ofNullable(entity).map(this::entityToDomainConRole);
     }
 
@@ -136,11 +157,16 @@ public class GrantedPermissionRepositoryImpl
     public boolean existsByOperation(String idCompany, Long idOperation) {
         requireCompany(idCompany);
         return getQueryFactory()
-                .selectOne()
-                .from(grantedPermissionEntity)
-                .where(grantedPermissionEntity.idCompany.eq(idCompany)
-                        .and(grantedPermissionEntity.operationEntity.idOperation.eq(idOperation)))
-                .fetchFirst() != null;
+                        .selectOne()
+                        .from(grantedPermissionEntity)
+                        .where(
+                                grantedPermissionEntity
+                                        .idCompany
+                                        .eq(idCompany)
+                                        .and(
+                                                grantedPermissionEntity.operationEntity.idOperation
+                                                        .eq(idOperation)))
+                        .fetchFirst()
+                != null;
     }
-
 }

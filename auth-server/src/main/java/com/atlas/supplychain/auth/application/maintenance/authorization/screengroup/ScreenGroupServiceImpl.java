@@ -4,9 +4,8 @@ import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundExcepti
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.ScreenGroup;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.ModuleRepository;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.ScreenGroupRepository;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class ScreenGroupServiceImpl implements ScreenGroupService {
@@ -35,7 +34,8 @@ public class ScreenGroupServiceImpl implements ScreenGroupService {
     }
 
     @Override
-    public List<ScreenGroup> listarPorModulo(String idCompany, Long idModule) throws EntityNotFoundException {
+    public List<ScreenGroup> listarPorModulo(String idCompany, Long idModule)
+            throws EntityNotFoundException {
         moduleRepository.obtenerModuloPorId(idCompany, idModule);
         return repository.listarPorModulo(idCompany, idModule);
     }

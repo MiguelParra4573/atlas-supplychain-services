@@ -11,7 +11,8 @@ public class SecurityContextCurrentActor implements CurrentActor {
     @Override
     public Actor actorActual() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails cud)) {
+        if (authentication == null
+                || !(authentication.getPrincipal() instanceof CustomUserDetails cud)) {
             return null;
         }
 

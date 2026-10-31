@@ -1,23 +1,21 @@
 package com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities;
 
-
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.persistence.Id;
-import jakarta.persistence.CascadeType;
+import java.io.Serializable;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.io.Serializable;
-import java.util.Set;
 
 @Entity
 @Table(name = "roles", schema = "auth")
@@ -44,5 +42,4 @@ public class RoleEntity implements Serializable {
 
     @Column(nullable = false)
     private boolean state;
-
 }

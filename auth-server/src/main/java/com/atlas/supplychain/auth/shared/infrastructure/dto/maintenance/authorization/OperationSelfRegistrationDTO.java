@@ -7,11 +7,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Una operación protegida dentro del payload de {@code POST /modules/self-register}. No
- * reutiliza {@link OperationDTO} porque ese DTO carga campos que no aplican acá ({@code
- * idOperation}, {@code idModule}, {@code state}, grupos {@code Crear}/{@code Actualizar}): el
- * módulo/operación que se registra siempre queda activo, y el vínculo con {@code id_module} lo
- * decide el servidor por empresa, nunca el cliente (Diseño §1, punto "Idempotencia").
+ * Una operación protegida dentro del payload de {@code POST /modules/self-register}. No reutiliza
+ * {@link OperationDTO} porque ese DTO carga campos que no aplican acá ({@code idOperation}, {@code
+ * idModule}, {@code state}, grupos {@code Crear}/{@code Actualizar}): el módulo/operación que se
+ * registra siempre queda activo, y el vínculo con {@code id_module} lo decide el servidor por
+ * empresa, nunca el cliente (Diseño §1, punto "Idempotencia").
  */
 @Data
 @Builder
@@ -19,15 +19,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OperationSelfRegistrationDTO {
 
-    /** Vocabulario cerrado (004-normalizar-catalogo-rbac.sql): CREAR/EDITAR/ELIMINAR/CONSULTAR/LISTAR. */
-    @NotBlank
-    private String tag;
+    /**
+     * Vocabulario cerrado (004-normalizar-catalogo-rbac.sql):
+     * CREAR/EDITAR/ELIMINAR/CONSULTAR/LISTAR.
+     */
+    @NotBlank private String tag;
 
-    @NotBlank
-    private String path;
+    @NotBlank private String path;
 
-    @NotBlank
-    private String httpMethod;
+    @NotBlank private String httpMethod;
 
     private boolean permitAll;
 }

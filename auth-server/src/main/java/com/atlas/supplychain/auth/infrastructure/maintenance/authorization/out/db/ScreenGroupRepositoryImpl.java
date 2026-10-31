@@ -1,5 +1,7 @@
 package com.atlas.supplychain.auth.infrastructure.maintenance.authorization.out.db;
 
+import static com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.QScreenGroupEntity.screenGroupEntity;
+
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.ScreenGroup;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.ScreenGroupRepository;
@@ -8,19 +10,15 @@ import com.atlas.supplychain.auth.infrastructure.common.db.query.predicate.Predi
 import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.ScreenGroupEntity;
 import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.out.mappers.ScreenGroupMapper;
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
-import static com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.QScreenGroupEntity.screenGroupEntity;
-
 @Repository
 @Transactional
 @Slf4j
-public class ScreenGroupRepositoryImpl
-        extends AbstractQueryDslRepository<ScreenGroupEntity, Long>
+public class ScreenGroupRepositoryImpl extends AbstractQueryDslRepository<ScreenGroupEntity, Long>
         implements ScreenGroupRepository {
 
     private final ScreenGroupMapper mapper;
@@ -28,8 +26,7 @@ public class ScreenGroupRepositoryImpl
     public ScreenGroupRepositoryImpl(
             EntityManager entityManager,
             PredicateBuilderRegistry predicateRegistry,
-            ScreenGroupMapper mapper
-    ) {
+            ScreenGroupMapper mapper) {
         super(ScreenGroupEntity.class, entityManager, predicateRegistry);
         this.mapper = mapper;
     }
@@ -41,16 +38,25 @@ public class ScreenGroupRepositoryImpl
 
     @Override
     public void actualizar(ScreenGroup group) throws EntityNotFoundException {
-        ScreenGroupEntity existente = findByIdAndCompany(group.getIdCompany(), group.getIdScreenGroup())
-                .orElseThrow(() -> new EntityNotFoundException("Carpeta no encontrada ID " + group.getIdScreenGroup()));
+        ScreenGroupEntity existente =
+                findByIdAndCompany(group.getIdCompany(), group.getIdScreenGroup())
+                        .orElseThrow(
+                                () ->
+                                        new EntityNotFoundException(
+                                                "Carpeta no encontrada ID "
+                                                        + group.getIdScreenGroup()));
         mapper.update(group, existente);
         this.save(existente);
     }
 
     @Override
     public void eliminar(String idCompany, Long idScreenGroup) throws EntityNotFoundException {
-        ScreenGroupEntity entity = findByIdAndCompany(idCompany, idScreenGroup)
-                .orElseThrow(() -> new EntityNotFoundException("Carpeta no encontrada ID " + idScreenGroup));
+        ScreenGroupEntity entity =
+                findByIdAndCompany(idCompany, idScreenGroup)
+                        .orElseThrow(
+                                () ->
+                                        new EntityNotFoundException(
+                                                "Carpeta no encontrada ID " + idScreenGroup));
         this.delete(entity);
     }
 
@@ -58,13 +64,17 @@ public class ScreenGroupRepositoryImpl
     public List<ScreenGroup> listarPorModulo(String idCompany, Long idModule) {
         requireCompany(idCompany);
 
-        List<ScreenGroupEntity> list = getQueryFactory()
-                .selectFrom(screenGroupEntity)
-                .where(screenGroupEntity.idCompany.eq(idCompany)
-                        .and(screenGroupEntity.idModule.eq(idModule))
-                        .and(screenGroupEntity.state.eq(true)))
-                .orderBy(screenGroupEntity.displayOrder.asc(), screenGroupEntity.name.asc())
-                .fetch();
+        List<ScreenGroupEntity> list =
+                getQueryFactory()
+                        .selectFrom(screenGroupEntity)
+                        .where(
+                                screenGroupEntity
+                                        .idCompany
+                                        .eq(idCompany)
+                                        .and(screenGroupEntity.idModule.eq(idModule))
+                                        .and(screenGroupEntity.state.eq(true)))
+                        .orderBy(screenGroupEntity.displayOrder.asc(), screenGroupEntity.name.asc())
+                        .fetch();
 
         return list.stream().map(mapper::entityToDomain).toList();
     }

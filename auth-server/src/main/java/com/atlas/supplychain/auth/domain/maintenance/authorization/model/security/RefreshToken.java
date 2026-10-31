@@ -1,12 +1,11 @@
 package com.atlas.supplychain.auth.domain.maintenance.authorization.model.security;
 
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.Instant;
 
 @Getter
 @Setter

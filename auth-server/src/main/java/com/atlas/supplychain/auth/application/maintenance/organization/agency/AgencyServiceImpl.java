@@ -7,10 +7,9 @@ import com.atlas.supplychain.auth.domain.maintenance.organization.repositories.C
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
 import com.atlas.supplychain.auth.domain.shared.query.FilterCriterion;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Mismo patrón que {@code RoleServiceImpl} (Spec 1.2.2): {@code Agency} lleva {@code idCompany}
@@ -50,7 +49,8 @@ public class AgencyServiceImpl implements AgencyService {
     }
 
     @Override
-    public Agency obtenerAgencyPorId(String idCompany, String idAgency) throws EntityNotFoundException {
+    public Agency obtenerAgencyPorId(String idCompany, String idAgency)
+            throws EntityNotFoundException {
         return repository.obtenerAgencyPorId(idCompany, idAgency);
     }
 
@@ -60,12 +60,12 @@ public class AgencyServiceImpl implements AgencyService {
     }
 
     @Override
-    public PagedResult<Agency> listarAgenciesPaginadas(String idCompany, List<FilterCriterion> filters, PageQuery pageQuery) {
+    public PagedResult<Agency> listarAgenciesPaginadas(
+            String idCompany, List<FilterCriterion> filters, PageQuery pageQuery) {
         return repository.listarAgenciesPaginadas(idCompany, filters, pageQuery);
     }
 
     private void requerirCompanyExistente(String idCompany) throws EntityNotFoundException {
         companyRepository.obtenerCompanyPorId(idCompany);
     }
-
 }

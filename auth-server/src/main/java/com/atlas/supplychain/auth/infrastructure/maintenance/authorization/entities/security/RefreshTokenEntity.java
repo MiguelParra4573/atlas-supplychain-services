@@ -1,6 +1,5 @@
 package com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.security;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -8,19 +7,19 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-
-import java.time.Instant;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
-@Table(name = "refresh_tokens",
+@Table(
+        name = "refresh_tokens",
         indexes = {
-                @Index(name = "uk_refresh_tokens_token_hash", columnList = "token_hash", unique = true),
-                @Index(name = "idx_refresh_tokens_id_user", columnList = "id_user")
+            @Index(name = "uk_refresh_tokens_token_hash", columnList = "token_hash", unique = true),
+            @Index(name = "idx_refresh_tokens_id_user", columnList = "id_user")
         })
 @Getter
 @Setter
@@ -56,4 +55,5 @@ public class RefreshTokenEntity {
 
     public boolean isActive(Instant now) {
         return revokedAt == null && expiresAt.isAfter(now);
-    }}
+    }
+}

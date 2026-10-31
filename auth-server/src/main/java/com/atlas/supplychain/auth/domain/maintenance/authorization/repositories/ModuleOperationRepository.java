@@ -1,15 +1,14 @@
 package com.atlas.supplychain.auth.domain.maintenance.authorization.repositories;
 
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Module;
-
 import java.util.List;
 import java.util.Map;
 
 /**
- * Asignaciones {@code Module} <-> {@code Operation} (Spec 1.2, N:M). Vive aparte de
- * {@code ModuleRepository}/{@code OperationRepository} porque la asignación no pertenece a ninguno
- * de los dos agregados: es la decisión de la empresa sobre cómo agrupar su menú, y ninguno de los
- * dos lados manda sobre el otro.
+ * Asignaciones {@code Module} <-> {@code Operation} (Spec 1.2, N:M). Vive aparte de {@code
+ * ModuleRepository}/{@code OperationRepository} porque la asignación no pertenece a ninguno de los
+ * dos agregados: es la decisión de la empresa sobre cómo agrupar su menú, y ninguno de los dos
+ * lados manda sobre el otro.
  */
 public interface ModuleOperationRepository {
 
@@ -28,9 +27,9 @@ public interface ModuleOperationRepository {
     void eliminarAsignacionesDeOperacion(String idCompany, Long idOperation);
 
     /**
-     * Overrides de orden de la empresa para las pantallas de este módulo (Spec 1.3):
-     * {@code idOperation -> displayOrder}. Solo las filas que sí tienen override -- una ausente
-     * usa la secuencia de su {@code ProcessStage}, o el final si no tiene ninguna de las dos.
+     * Overrides de orden de la empresa para las pantallas de este módulo (Spec 1.3): {@code
+     * idOperation -> displayOrder}. Solo las filas que sí tienen override -- una ausente usa la
+     * secuencia de su {@code ProcessStage}, o el final si no tiene ninguna de las dos.
      */
     Map<Long, Integer> displayOrdersDeModulo(String idCompany, Long idModule);
 
@@ -40,21 +39,24 @@ public interface ModuleOperationRepository {
      * Solo toca operaciones ya asignadas al módulo; un {@code resource} sin asignación ahí se
      * ignora en silencio, no es error de esta llamada.
      */
-    void reordenarPantallas(String idCompany, Long idModule, Map<String, Integer> displayOrderPorRecurso);
+    void reordenarPantallas(
+            String idCompany, Long idModule, Map<String, Integer> displayOrderPorRecurso);
 
     /**
-     * Fija la carpeta ({@link com.atlas.supplychain.auth.domain.maintenance.authorization.model.ScreenGroup})
-     * de las operaciones ya asignadas de un {@code resource}, dentro de este módulo (Spec 1.4).
-     * {@code idScreenGroup == null} la saca de cualquier carpeta. Solo toca filas que ya existen --
-     * un {@code resource} sin asignar a este módulo se ignora en silencio, mismo criterio que
-     * {@link #reordenarPantallas}.
+     * Fija la carpeta ({@link
+     * com.atlas.supplychain.auth.domain.maintenance.authorization.model.ScreenGroup}) de las
+     * operaciones ya asignadas de un {@code resource}, dentro de este módulo (Spec 1.4). {@code
+     * idScreenGroup == null} la saca de cualquier carpeta. Solo toca filas que ya existen -- un
+     * {@code resource} sin asignar a este módulo se ignora en silencio, mismo criterio que {@link
+     * #reordenarPantallas}.
      */
-    void asignarCarpetaARecurso(String idCompany, Long idModule, String resource, Long idScreenGroup);
+    void asignarCarpetaARecurso(
+            String idCompany, Long idModule, String resource, Long idScreenGroup);
 
     /**
      * `idOperation -> idScreenGroup` de las operaciones de este módulo que sí tienen carpeta (Spec
-     * 1.4) -- resolución en bloque para {@code MenuServiceImpl}, mismo criterio anti-N+1 que
-     * {@link #displayOrdersDeModulo}.
+     * 1.4) -- resolución en bloque para {@code MenuServiceImpl}, mismo criterio anti-N+1 que {@link
+     * #displayOrdersDeModulo}.
      */
     Map<Long, Long> screenGroupsDeModulo(String idCompany, Long idModule);
 }

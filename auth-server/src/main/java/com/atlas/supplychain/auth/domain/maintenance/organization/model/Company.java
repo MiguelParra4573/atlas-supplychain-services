@@ -2,8 +2,8 @@ package com.atlas.supplychain.auth.domain.maintenance.organization.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.NoArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
@@ -30,5 +30,4 @@ public class Company {
     private String legalRepLastName;
 
     private boolean state;
-
 }

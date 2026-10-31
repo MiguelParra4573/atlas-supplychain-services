@@ -8,8 +8,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** Carpeta plegable dentro de un módulo (Spec 1.4). {@code idModule} no viaja en el body -- sale
- * del path del endpoint, mismo criterio que {@code idCompany} sale del principal. */
+/**
+ * Carpeta plegable dentro de un módulo (Spec 1.4). {@code idModule} no viaja en el body -- sale del
+ * path del endpoint, mismo criterio que {@code idCompany} sale del principal.
+ */
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,16 +20,17 @@ public class ScreenGroupDTO {
 
     private Long idScreenGroup;
 
-    @NotBlank(groups = {Crear.class, Actualizar.class})
-    @Size(max = 150, groups = {Crear.class, Actualizar.class})
+    @NotBlank(groups = {Crear.class, Actualizar.class}) @Size(
+            max = 150,
+            groups = {Crear.class, Actualizar.class})
     private String name;
 
     /** Opcional: {@code null} en el alta se guarda como 0. */
     private Integer displayOrder;
 
-    @NotNull(groups = {Crear.class, Actualizar.class})
-    private Boolean state;
+    @NotNull(groups = {Crear.class, Actualizar.class}) private Boolean state;
 
     public interface Crear {}
+
     public interface Actualizar {}
 }

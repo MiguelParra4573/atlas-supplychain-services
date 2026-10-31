@@ -3,7 +3,6 @@ package com.atlas.supplychain.auth.infrastructure.maintenance.authorization.in.r
 import com.atlas.supplychain.auth.application.maintenance.authorization.operation.OperationService;
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Operation;
-import com.atlas.supplychain.auth.domain.maintenance.authorization.screen.ModuleScreenOrder;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.screen.ScreenSummary;
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
@@ -16,6 +15,8 @@ import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authoriz
 import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authorization.ModuleScreenDTO;
 import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authorization.OperationDTO;
 import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authorization.ScreenDTO;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +24,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/operations")
@@ -40,8 +38,7 @@ public class OperationController {
     @PostMapping
     @PreAuthorize("hasAuthority('OPERACIONES:CREAR')")
     public ResponseEntity<Void> crearOperacion(
-            @Validated({OperationDTO.Crear.class})
-            @RequestBody OperationDTO dto,
+            @Validated({OperationDTO.Crear.class}) @RequestBody OperationDTO dto,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
         Operation operation = mapper.dtoToDomain(dto, principal.getIdCompany());
@@ -52,9 +49,9 @@ public class OperationController {
     @PatchMapping
     @PreAuthorize("hasAuthority('OPERACIONES:EDITAR')")
     public ResponseEntity<Void> actualizarOperacion(
-            @Validated({OperationDTO.Actualizar.class})
-            @RequestBody OperationDTO dto,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @Validated({OperationDTO.Actualizar.class}) @RequestBody OperationDTO dto,
+            @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
         Operation operation = mapper.dtoToDomain(dto, principal.getIdCompany());
         service.actualizarOperacion(operation);
@@ -64,17 +61,18 @@ public class OperationController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('OPERACIONES:CONSULTAR')")
     public ResponseEntity<OperationDTO> obtenerOperacionPorId(
-            @PathVariable Long id,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @PathVariable Long id, @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
-        return ResponseEntity.ok(mapper.domainToDto(service.obtenerOperacionPorId(principal.getIdCompany(), id)));
+        return ResponseEntity.ok(
+                mapper.domainToDto(service.obtenerOperacionPorId(principal.getIdCompany(), id)));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('OPERACIONES:ELIMINAR')")
     public ResponseEntity<Void> eliminarOperacion(
-            @PathVariable Long id,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @PathVariable Long id, @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
         service.eliminarOperacion(principal.getIdCompany(), id);
         return ResponseEntity.ok().build();
@@ -83,13 +81,12 @@ public class OperationController {
     @PostMapping("/module/{moduleId}")
     @PreAuthorize("hasAuthority('OPERACIONES:LISTAR')")
     public ResponseEntity<?> listarOperacionesPorModulo(
-            @PathVariable Long moduleId,
-            @AuthenticationPrincipal CustomUserDetails principal) {
+            @PathVariable Long moduleId, @AuthenticationPrincipal CustomUserDetails principal) {
 
-        List<OperationDTO> operaciones = service.listarOperacionesPorModulo(principal.getIdCompany(), moduleId)
-                .stream()
-                .map(mapper::domainToDto)
-                .toList();
+        List<OperationDTO> operaciones =
+                service.listarOperacionesPorModulo(principal.getIdCompany(), moduleId).stream()
+                        .map(mapper::domainToDto)
+                        .toList();
         return ResponseEntity.ok(operaciones);
     }
 
@@ -102,27 +99,27 @@ public class OperationController {
     public ResponseEntity<List<OperationDTO>> listarOperacionesSinModulo(
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        return ResponseEntity.ok(service.listarOperacionesSinModulo(principal.getIdCompany())
-                .stream()
-                .map(mapper::domainToDto)
-                .toList());
+        return ResponseEntity.ok(
+                service.listarOperacionesSinModulo(principal.getIdCompany()).stream()
+                        .map(mapper::domainToDto)
+                        .toList());
     }
 
     @GetMapping("/{id}/modules")
     @PreAuthorize("hasAuthority('OPERACIONES:CONSULTAR')")
     public ResponseEntity<List<ModuleDTO>> listarModulosDeOperacion(
-            @PathVariable Long id,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @PathVariable Long id, @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
-        return ResponseEntity.ok(service.listarModulosDeOperacion(principal.getIdCompany(), id)
-                .stream()
-                .map(moduleMapper::domainToDto)
-                .toList());
+        return ResponseEntity.ok(
+                service.listarModulosDeOperacion(principal.getIdCompany(), id).stream()
+                        .map(moduleMapper::domainToDto)
+                        .toList());
     }
 
     /**
-     * Colgar una operación de un módulo del menú. {@code OPERACIONES:EDITAR} y no
-     * {@code MODULOS:EDITAR}: lo que cambia es dónde aparece esta operación, y es la pantalla de
+     * Colgar una operación de un módulo del menú. {@code OPERACIONES:EDITAR} y no {@code
+     * MODULOS:EDITAR}: lo que cambia es dónde aparece esta operación, y es la pantalla de
      * asignación de operaciones la que lo dispara.
      */
     @PostMapping("/{id}/modules/{moduleId}")
@@ -130,7 +127,8 @@ public class OperationController {
     public ResponseEntity<Void> asignarAModulo(
             @PathVariable Long id,
             @PathVariable Long moduleId,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
         service.asignarAModulo(principal.getIdCompany(), id, moduleId);
         return ResponseEntity.noContent().build();
@@ -141,7 +139,8 @@ public class OperationController {
     public ResponseEntity<Void> desasignarDeModulo(
             @PathVariable Long id,
             @PathVariable Long moduleId,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
         service.desasignarDeModulo(principal.getIdCompany(), id, moduleId);
         return ResponseEntity.noContent().build();
@@ -157,7 +156,8 @@ public class OperationController {
     public ResponseEntity<Void> asignarRecursoAModulo(
             @PathVariable String resource,
             @PathVariable Long moduleId,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
         service.asignarRecursoAModulo(principal.getIdCompany(), resource, moduleId);
         return ResponseEntity.noContent().build();
@@ -168,7 +168,8 @@ public class OperationController {
     public ResponseEntity<Void> desasignarRecursoDeModulo(
             @PathVariable String resource,
             @PathVariable Long moduleId,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
         service.desasignarRecursoDeModulo(principal.getIdCompany(), resource, moduleId);
         return ResponseEntity.noContent().build();
@@ -183,9 +184,11 @@ public class OperationController {
     public ResponseEntity<Void> reordenarPantallasDeModulo(
             @PathVariable Long moduleId,
             @RequestBody Map<String, Integer> displayOrderPorRecurso,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
-        service.reordenarPantallasDeModulo(principal.getIdCompany(), moduleId, displayOrderPorRecurso);
+        service.reordenarPantallasDeModulo(
+                principal.getIdCompany(), moduleId, displayOrderPorRecurso);
         return ResponseEntity.noContent().build();
     }
 
@@ -199,9 +202,11 @@ public class OperationController {
             @PathVariable String resource,
             @PathVariable Long moduleId,
             @RequestBody Map<String, Long> body,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
-        service.asignarCarpetaARecurso(principal.getIdCompany(), resource, moduleId, body.get("idScreenGroup"));
+        service.asignarCarpetaARecurso(
+                principal.getIdCompany(), resource, moduleId, body.get("idScreenGroup"));
         return ResponseEntity.noContent().build();
     }
 
@@ -209,8 +214,8 @@ public class OperationController {
      * Buscador de pantallas (Spec 1.3): una fila por {@code resource}, con sus módulos actuales ya
      * resueltos -- la unidad de trabajo real de la pantalla de asignación en {@code client/}, que
      * antes de esta spec cargaba todo sin paginar y sin buscador (grilla de checkboxes por
-     * operación individual, Spec 1.2). Query params simples (no el contrato genérico de
-     * {@code FilterCriterion}) porque acá solo hace falta un filtro de texto sobre {@code resource}.
+     * operación individual, Spec 1.2). Query params simples (no el contrato genérico de {@code
+     * FilterCriterion}) porque acá solo hace falta un filtro de texto sobre {@code resource}.
      */
     @GetMapping("/screens")
     @PreAuthorize("hasAuthority('OPERACIONES:LISTAR')")
@@ -221,13 +226,26 @@ public class OperationController {
             @RequestParam(defaultValue = "20") int size,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        PagedResult<ScreenSummary> result = service.buscarPantallas(
-                principal.getIdCompany(), resource, unassigned, new PageQuery(page, size, List.of()));
+        PagedResult<ScreenSummary> result =
+                service.buscarPantallas(
+                        principal.getIdCompany(),
+                        resource,
+                        unassigned,
+                        new PageQuery(page, size, List.of()));
 
-        List<ScreenDTO> content = result.content().stream()
-                .map(screen -> new ScreenDTO(screen.resource(), screen.name(), screen.icon(), screen.idProcessStage(),
-                        screen.modules().stream().map(moduleMapper::domainToDto).toList()))
-                .toList();
+        List<ScreenDTO> content =
+                result.content().stream()
+                        .map(
+                                screen ->
+                                        new ScreenDTO(
+                                                screen.resource(),
+                                                screen.name(),
+                                                screen.icon(),
+                                                screen.idProcessStage(),
+                                                screen.modules().stream()
+                                                        .map(moduleMapper::domainToDto)
+                                                        .toList()))
+                        .toList();
 
         return new PagedResult<>(content, result.page(), result.size(), result.totalElements());
     }
@@ -239,12 +257,16 @@ public class OperationController {
     @GetMapping("/modules/{moduleId}/screens")
     @PreAuthorize("hasAuthority('OPERACIONES:LISTAR')")
     public ResponseEntity<List<ModuleScreenDTO>> pantallasDeModulo(
-            @PathVariable Long moduleId,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @PathVariable Long moduleId, @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
-        List<ModuleScreenDTO> pantallas = service.pantallasDeModulo(principal.getIdCompany(), moduleId).stream()
-                .map(p -> new ModuleScreenDTO(p.resource(), p.displayOrder(), p.idScreenGroup()))
-                .toList();
+        List<ModuleScreenDTO> pantallas =
+                service.pantallasDeModulo(principal.getIdCompany(), moduleId).stream()
+                        .map(
+                                p ->
+                                        new ModuleScreenDTO(
+                                                p.resource(), p.displayOrder(), p.idScreenGroup()))
+                        .toList();
 
         return ResponseEntity.ok(pantallas);
     }
@@ -253,11 +275,14 @@ public class OperationController {
     @PreAuthorize("hasAuthority('OPERACIONES:LISTAR')")
     public PagedResult<OperationDTO> listarOperacionesPaginadas(
             PageRequestDto pageRequest,
-            @RequestBody() SearchRequestDto searchRequest,
+            @RequestBody SearchRequestDto searchRequest,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        PagedResult<Operation> result = service.listarOperacionesPaginadas(
-                principal.getIdCompany(), searchRequest.getFilters(), pageRequest.toPageQuery(searchRequest.getSorts()));
+        PagedResult<Operation> result =
+                service.listarOperacionesPaginadas(
+                        principal.getIdCompany(),
+                        searchRequest.getFilters(),
+                        pageRequest.toPageQuery(searchRequest.getSorts()));
         List<OperationDTO> content = result.content().stream().map(mapper::domainToDto).toList();
         return new PagedResult<>(content, result.page(), result.size(), result.totalElements());
     }

@@ -4,6 +4,6 @@ import lombok.Builder;
 
 @Builder
 public record SortCriterion(
-        String field,     // nombre del campo en la Entity
+        String field, // nombre del campo en la Entity
         boolean ascending // true = ASC, false = DESC
-) {}
+        ) {}

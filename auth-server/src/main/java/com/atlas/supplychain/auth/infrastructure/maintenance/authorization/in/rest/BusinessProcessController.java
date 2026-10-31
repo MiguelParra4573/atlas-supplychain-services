@@ -3,11 +3,13 @@ package com.atlas.supplychain.auth.infrastructure.maintenance.authorization.in.r
 import com.atlas.supplychain.auth.application.maintenance.authorization.businessprocess.BusinessProcessService;
 import com.atlas.supplychain.auth.domain.common.exceptions.DuplicateRecordException;
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
-import com.atlas.supplychain.auth.domain.maintenance.authorization.model.BusinessProcess;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.CompanyProcess;
 import com.atlas.supplychain.auth.infrastructure.config.security.CustomUserDetails;
 import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.out.mappers.BusinessProcessMapper;
 import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authorization.BusinessProcessDTO;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,10 +25,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Catálogo de procesos de negocio (Spec 1.0). Es mantenimiento **del proveedor del ERP**, no del
@@ -93,18 +91,26 @@ public class BusinessProcessController {
     public ResponseEntity<List<BusinessProcessDTO>> listarDeMiEmpresa(
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        Map<Long, Boolean> activacion = service.listarPorEmpresa(principal.getIdCompany()).stream()
-                .collect(Collectors.toMap(CompanyProcess::getIdBusinessProcess,
-                        companyProcess -> Boolean.TRUE.equals(companyProcess.getActive()),
-                        (uno, otro) -> uno));
+        Map<Long, Boolean> activacion =
+                service.listarPorEmpresa(principal.getIdCompany()).stream()
+                        .collect(
+                                Collectors.toMap(
+                                        CompanyProcess::getIdBusinessProcess,
+                                        companyProcess ->
+                                                Boolean.TRUE.equals(companyProcess.getActive()),
+                                        (uno, otro) -> uno));
 
-        List<BusinessProcessDTO> catalogo = service.listar().stream()
-                .map(proceso -> {
-                    BusinessProcessDTO dto = mapper.domainToDto(proceso);
-                    dto.setActive(activacion.getOrDefault(proceso.getIdBusinessProcess(), Boolean.FALSE));
-                    return dto;
-                })
-                .toList();
+        List<BusinessProcessDTO> catalogo =
+                service.listar().stream()
+                        .map(
+                                proceso -> {
+                                    BusinessProcessDTO dto = mapper.domainToDto(proceso);
+                                    dto.setActive(
+                                            activacion.getOrDefault(
+                                                    proceso.getIdBusinessProcess(), Boolean.FALSE));
+                                    return dto;
+                                })
+                        .toList();
 
         return ResponseEntity.ok(catalogo);
     }
@@ -116,24 +122,24 @@ public class BusinessProcessController {
      * <p>El {@code idCompany} sale del principal y nunca de la URL. Tomarlo del path dejaba que el
      * administrador de una empresa apagara un proceso contratado por otra -- y como desactivar
      * corta acceso, eso deja a los usuarios de la otra empresa en 403 sobre pantallas que sí
-     * pagaron. Ningún otro endpoint de {@code auth-server} acepta {@code idCompany} por URL.</p>
+     * pagaron. Ningún otro endpoint de {@code auth-server} acepta {@code idCompany} por URL.
      *
      * <p>Si el proveedor necesita algún día activar procesos de un cliente desde su propia sesión,
-     * eso es un caso de uso distinto y va detrás de una autoridad propia, no de la misma
-     * {@code PROCESOS:EDITAR} que puede tener cualquier administrador.</p>
+     * eso es un caso de uso distinto y va detrás de una autoridad propia, no de la misma {@code
+     * PROCESOS:EDITAR} que puede tener cualquier administrador.
      */
     @PutMapping("/{id}/activation")
     @PreAuthorize("hasAuthority('PROCESOS_EMPRESA:EDITAR')")
     public ResponseEntity<Void> activar(
             @PathVariable Long id,
             @RequestBody ActivacionRequest request,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
         service.activar(principal.getIdCompany(), id, request.active());
         return ResponseEntity.ok().build();
     }
 
     /** Body mínimo: solo el estado deseado. */
-    public record ActivacionRequest(boolean active) {
-    }
+    public record ActivacionRequest(boolean active) {}
 }

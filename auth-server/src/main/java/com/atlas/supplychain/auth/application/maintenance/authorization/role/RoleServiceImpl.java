@@ -17,11 +17,10 @@ import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
 import com.atlas.supplychain.auth.domain.shared.query.FilterCriterion;
-import lombok.RequiredArgsConstructor;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class RoleServiceImpl implements RoleService {
@@ -41,13 +40,20 @@ public class RoleServiceImpl implements RoleService {
     public void crearRol(Role role) {
         if (repository.existsByNameAndCompany(role.getIdCompany(), role.getName())) {
             throw new DuplicateRecordException(
-                    "Ya existe un rol con nombre '%s' en la empresa %s".formatted(role.getName(), role.getIdCompany()));
+                    "Ya existe un rol con nombre '%s' en la empresa %s"
+                            .formatted(role.getName(), role.getIdCompany()));
         }
         repository.crearRol(role);
         // El nombre del rol (unico por empresa, ver validacion de arriba) es el identificador de
         // negocio para el audit log; RoleRepositoryImpl#crearRol propaga el idRol autogenerado de
         // vuelta a `role` (Spec 1.24) para que registrarRolCreado(role) tenga un id real.
-        auditar("CREATE", "CREAR_ROL", role.getName(), "MEDIUM", "Rol creado: " + role.getName(), role.getIdCompany());
+        auditar(
+                "CREATE",
+                "CREAR_ROL",
+                role.getName(),
+                "MEDIUM",
+                "Rol creado: " + role.getName(),
+                role.getIdCompany());
         registrarRolCreado(role);
     }
 
@@ -55,8 +61,13 @@ public class RoleServiceImpl implements RoleService {
     public void actualizarRol(Role role) throws EntityNotFoundException {
         repository.obtenerRolPorId(role.getIdCompany(), role.getIdRol());
         repository.actualizarRol(role);
-        auditar("UPDATE", "ACTUALIZAR_ROL", String.valueOf(role.getIdRol()), "MEDIUM",
-                "Rol actualizado: " + role.getName(), role.getIdCompany());
+        auditar(
+                "UPDATE",
+                "ACTUALIZAR_ROL",
+                String.valueOf(role.getIdRol()),
+                "MEDIUM",
+                "Rol actualizado: " + role.getName(),
+                role.getIdCompany());
         registrarRolActualizado(role);
     }
 
@@ -64,28 +75,36 @@ public class RoleServiceImpl implements RoleService {
     public void eliminarRol(String idCompany, Long idRol) throws EntityNotFoundException {
         if (!grantedPermissionRepository.listarPermisosPorRol(idCompany, idRol).isEmpty()) {
             throw new ExistingDependenciesException(
-                    "No se puede eliminar el rol ID %d: tiene permisos concedidos asociados".formatted(idRol));
+                    "No se puede eliminar el rol ID %d: tiene permisos concedidos asociados"
+                            .formatted(idRol));
         }
         if (userRepository.existsByRole(idCompany, idRol)) {
             throw new ExistingDependenciesException(
                     "No se puede eliminar el rol ID %d: tiene usuarios asignados".formatted(idRol));
         }
         repository.eliminarRol(idCompany, idRol);
-        auditar("DELETE", "ELIMINAR_ROL", String.valueOf(idRol), "HIGH", "Rol eliminado ID " + idRol, idCompany);
+        auditar(
+                "DELETE",
+                "ELIMINAR_ROL",
+                String.valueOf(idRol),
+                "HIGH",
+                "Rol eliminado ID " + idRol,
+                idCompany);
         registrarRolEliminado(idCompany, idRol);
     }
 
     /**
-     * Spec 1.24: publica {@code ROL_CREADO} vía Outbox en la misma transacción que el
-     * {@code INSERT} de {@link #crearRol(Role)} -- alimenta el read model CQRS de
-     * {@code ms-reporte} (Spec 4.4 revisada).
+     * Spec 1.24: publica {@code ROL_CREADO} vía Outbox en la misma transacción que el {@code
+     * INSERT} de {@link #crearRol(Role)} -- alimenta el read model CQRS de {@code ms-reporte} (Spec
+     * 4.4 revisada).
      */
     private void registrarRolCreado(Role role) {
-        outboxRepository.append(new OutboxEventCommand(
-                AGGREGATE_TYPE_ROLE,
-                String.valueOf(role.getIdRol()),
-                "ROL_CREADO",
-                snapshotRol(role)));
+        outboxRepository.append(
+                new OutboxEventCommand(
+                        AGGREGATE_TYPE_ROLE,
+                        String.valueOf(role.getIdRol()),
+                        "ROL_CREADO",
+                        snapshotRol(role)));
     }
 
     /**
@@ -93,25 +112,27 @@ public class RoleServiceImpl implements RoleService {
      * en la misma transacción que el {@code UPDATE} de {@link #actualizarRol(Role)}.
      */
     private void registrarRolActualizado(Role role) {
-        outboxRepository.append(new OutboxEventCommand(
-                AGGREGATE_TYPE_ROLE,
-                String.valueOf(role.getIdRol()),
-                "ROL_ACTUALIZADO",
-                snapshotRol(role)));
+        outboxRepository.append(
+                new OutboxEventCommand(
+                        AGGREGATE_TYPE_ROLE,
+                        String.valueOf(role.getIdRol()),
+                        "ROL_ACTUALIZADO",
+                        snapshotRol(role)));
     }
 
     /**
-     * Spec 1.24: {@code RoleRepositoryImpl.eliminarRol} hace baja física ({@code this.delete}),
-     * al igual que {@code UserRepositoryImpl.eliminarUsuario} -- se publica {@code ROL_ELIMINADO}
-     * con el mismo criterio que {@code USUARIO_ELIMINADO} (la spec no lo daba por sentado: pedía
+     * Spec 1.24: {@code RoleRepositoryImpl.eliminarRol} hace baja física ({@code this.delete}), al
+     * igual que {@code UserRepositoryImpl.eliminarUsuario} -- se publica {@code ROL_ELIMINADO} con
+     * el mismo criterio que {@code USUARIO_ELIMINADO} (la spec no lo daba por sentado: pedía
      * verificar si la baja era física o lógica antes de decidir).
      */
     private void registrarRolEliminado(String idCompany, Long idRol) {
-        outboxRepository.append(new OutboxEventCommand(
-                AGGREGATE_TYPE_ROLE,
-                String.valueOf(idRol),
-                "ROL_ELIMINADO",
-                Map.of("idRole", String.valueOf(idRol), "idCompany", idCompany)));
+        outboxRepository.append(
+                new OutboxEventCommand(
+                        AGGREGATE_TYPE_ROLE,
+                        String.valueOf(idRol),
+                        "ROL_ELIMINADO",
+                        Map.of("idRole", String.valueOf(idRol), "idCompany", idCompany)));
     }
 
     // Map mutable (no Map.of) porque idCompany/name podrian venir null en construcciones
@@ -137,7 +158,8 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public PagedResult<Role> listarRolesPaginados(String idCompany, List<FilterCriterion> filters, PageQuery pageQuery) {
+    public PagedResult<Role> listarRolesPaginados(
+            String idCompany, List<FilterCriterion> filters, PageQuery pageQuery) {
         return repository.listarRolesPaginados(idCompany, filters, pageQuery);
     }
 
@@ -146,14 +168,30 @@ public class RoleServiceImpl implements RoleService {
         return repository.resumenDeMenuPorRol(idCompany);
     }
 
-    private void auditar(String accionTipo, String accionNombre, String entidadId, String severity,
-                          String resumen, String fallbackCompanyId) {
+    private void auditar(
+            String accionTipo,
+            String accionNombre,
+            String entidadId,
+            String severity,
+            String resumen,
+            String fallbackCompanyId) {
         Actor actor = currentActor.actorActual();
         String companyId = actor != null ? actor.idCompany() : fallbackCompanyId;
         String userId = actor != null ? actor.idUser() : null;
         String username = actor != null ? actor.username() : null;
         String rolPrincipal = actor != null ? actor.rolPrincipal() : null;
-        auditTrail.registrar(new AuditEventCommand(accionTipo, accionNombre, ENTIDAD_TIPO_ROL, entidadId,
-                MODULO_ADMINISTRACION, severity, companyId, userId, username, rolPrincipal, resumen));
+        auditTrail.registrar(
+                new AuditEventCommand(
+                        accionTipo,
+                        accionNombre,
+                        ENTIDAD_TIPO_ROL,
+                        entidadId,
+                        MODULO_ADMINISTRACION,
+                        severity,
+                        companyId,
+                        userId,
+                        username,
+                        rolPrincipal,
+                        resumen));
     }
 }

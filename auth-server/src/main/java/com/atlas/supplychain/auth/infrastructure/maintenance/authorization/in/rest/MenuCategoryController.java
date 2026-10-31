@@ -11,6 +11,7 @@ import com.atlas.supplychain.auth.shared.infrastructure.dto.PageRequestDto;
 import com.atlas.supplychain.auth.shared.infrastructure.dto.SearchRequestDto;
 import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authorization.MenuCategoryDTO;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +20,10 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-/** Catálogo de botones del rail (Spec 1.4). Dueño la empresa -- a diferencia de
- * {@code ProcessStageController}/{@code BusinessProcessController} (proveedor). */
+/**
+ * Catálogo de botones del rail (Spec 1.4). Dueño la empresa -- a diferencia de {@code
+ * ProcessStageController}/{@code BusinessProcessController} (proveedor).
+ */
 @RestController
 @RequestMapping("/menu-categories")
 @RequiredArgsConstructor
@@ -36,7 +37,8 @@ public class MenuCategoryController {
     @PreAuthorize("hasAuthority('MENU_CATEGORIES:CREAR')")
     public ResponseEntity<Void> crear(
             @Validated({MenuCategoryDTO.Crear.class}) @RequestBody MenuCategoryDTO dto,
-            @AuthenticationPrincipal CustomUserDetails principal) throws DuplicateRecordException {
+            @AuthenticationPrincipal CustomUserDetails principal)
+            throws DuplicateRecordException {
 
         MenuCategory category = mapper.dtoToDomain(dto, principal.getIdCompany());
         service.crear(category);
@@ -47,7 +49,8 @@ public class MenuCategoryController {
     @PreAuthorize("hasAuthority('MENU_CATEGORIES:EDITAR')")
     public ResponseEntity<Void> actualizar(
             @Validated({MenuCategoryDTO.Actualizar.class}) @RequestBody MenuCategoryDTO dto,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException, DuplicateRecordException {
+            @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException, DuplicateRecordException {
 
         MenuCategory category = mapper.dtoToDomain(dto, principal.getIdCompany());
         service.actualizar(category);
@@ -57,17 +60,18 @@ public class MenuCategoryController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('MENU_CATEGORIES:CONSULTAR')")
     public ResponseEntity<MenuCategoryDTO> obtenerPorId(
-            @NotNull @PathVariable Long id,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @NotNull @PathVariable Long id, @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
-        return ResponseEntity.ok(mapper.domainToDto(service.obtenerPorId(principal.getIdCompany(), id)));
+        return ResponseEntity.ok(
+                mapper.domainToDto(service.obtenerPorId(principal.getIdCompany(), id)));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('MENU_CATEGORIES:ELIMINAR')")
     public ResponseEntity<Void> eliminar(
-            @NotNull @PathVariable Long id,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @NotNull @PathVariable Long id, @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
         service.eliminar(principal.getIdCompany(), id);
         return ResponseEntity.ok().build();
@@ -79,8 +83,10 @@ public class MenuCategoryController {
             @NotNull @PathVariable Boolean state,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        List<MenuCategoryDTO> categorias = service.listarPorState(principal.getIdCompany(), state)
-                .stream().map(mapper::domainToDto).toList();
+        List<MenuCategoryDTO> categorias =
+                service.listarPorState(principal.getIdCompany(), state).stream()
+                        .map(mapper::domainToDto)
+                        .toList();
 
         return ResponseEntity.ok(categorias);
     }
@@ -92,8 +98,11 @@ public class MenuCategoryController {
             @RequestBody SearchRequestDto searchRequest,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        PagedResult<MenuCategory> result = service.listarPaginado(
-                principal.getIdCompany(), searchRequest.getFilters(), pageRequest.toPageQuery(searchRequest.getSorts()));
+        PagedResult<MenuCategory> result =
+                service.listarPaginado(
+                        principal.getIdCompany(),
+                        searchRequest.getFilters(),
+                        pageRequest.toPageQuery(searchRequest.getSorts()));
         List<MenuCategoryDTO> content = result.content().stream().map(mapper::domainToDto).toList();
         return new PagedResult<>(content, result.page(), result.size(), result.totalElements());
     }

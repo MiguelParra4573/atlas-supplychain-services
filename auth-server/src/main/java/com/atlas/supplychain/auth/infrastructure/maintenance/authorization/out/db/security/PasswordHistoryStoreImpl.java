@@ -3,12 +3,11 @@ package com.atlas.supplychain.auth.infrastructure.maintenance.authorization.out.
 import com.atlas.supplychain.auth.application.security.contracts.PasswordHistoryStore;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.security.PasswordHistory;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.security.PasswordHistoryRepository;
+import java.time.Instant;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -19,12 +18,13 @@ public class PasswordHistoryStoreImpl implements PasswordHistoryStore {
     @Override
     @Transactional
     public void save(String idUser, String companyId, String hash) {
-        repository.save(PasswordHistory.builder()
-                .idUser(idUser)
-                .idCompany(companyId)
-                .passwordHash(hash)
-                .createdAt(Instant.now())
-                .build());
+        repository.save(
+                PasswordHistory.builder()
+                        .idUser(idUser)
+                        .idCompany(companyId)
+                        .passwordHash(hash)
+                        .createdAt(Instant.now())
+                        .build());
     }
 
     @Override

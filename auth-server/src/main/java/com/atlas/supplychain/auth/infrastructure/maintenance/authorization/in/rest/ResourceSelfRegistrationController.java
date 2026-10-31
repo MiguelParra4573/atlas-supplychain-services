@@ -5,6 +5,7 @@ import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Operati
 import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authorization.OperationSelfRegistrationDTO;
 import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authorization.ResourceSelfRegistrationDTO;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 /**
  * Auto-registro RBAC de un micro de negocio nuevo: este controller lo llama exclusivamente un JWT
  * de servicio ({@code typ="service"}, ej. {@code sub="svc-ms-inventario"}) al arrancar -- nunca un
@@ -24,19 +23,19 @@ import java.util.List;
  * empresa, usuario humano), acá no hay tenant en el principal.
  *
  * <p>{@code hasAuthority('ROLE_SERVICE')} en vez de un tag {@code MODULOS:*} del vocabulario
- * cerrado (004-normalizar-catalogo-rbac.sql): {@code ROLE_SERVICE} ya es la autoridad sintética
- * que {@link com.atlas.supplychain.auth.infrastructure.config.security.CustomUserDetails#forService}
+ * cerrado (004-normalizar-catalogo-rbac.sql): {@code ROLE_SERVICE} ya es la autoridad sintética que
+ * {@link com.atlas.supplychain.auth.infrastructure.config.security.CustomUserDetails#forService}
  * concede a todo principal de servicio (Spec 4.2 §5) -- reusarla acá evita inventar un segundo
  * mecanismo de "es un servicio" en paralelo al que ya reconoce {@code JwtAuthenticationFilter}.
  * Deliberadamente NO {@code hasAuthority('MODULOS:CREAR')}: esa autoridad nunca la tiene un
- * principal de servicio (Spec 4.2 §5, {@code SERVICE_AUTHORITIES} es una lista fija que no
- * incluye ninguna autoridad de escritura), y un usuario humano -- admin incluido -- no debe poder
- * registrar operaciones por esta vía de todas formas.</p>
+ * principal de servicio (Spec 4.2 §5, {@code SERVICE_AUTHORITIES} es una lista fija que no incluye
+ * ninguna autoridad de escritura), y un usuario humano -- admin incluido -- no debe poder registrar
+ * operaciones por esta vía de todas formas.
  *
  * <p>La ruta sigue siendo {@code /modules/self-register} aunque desde la Spec 1.2 no registre
- * ningún módulo: es el endpoint que ya conocen los servicios generados con el arquetipo, y
- * moverlo rompería a cualquiera que todavía no se haya actualizado sin ganar nada. El payload sí
- * acepta las dos formas -- ver {@link ResourceSelfRegistrationDTO#resourceEfectivo()}.</p>
+ * ningún módulo: es el endpoint que ya conocen los servicios generados con el arquetipo, y moverlo
+ * rompería a cualquiera que todavía no se haya actualizado sin ganar nada. El payload sí acepta las
+ * dos formas -- ver {@link ResourceSelfRegistrationDTO#resourceEfectivo()}.
  */
 @RestController
 @RequestMapping("/modules")
@@ -48,10 +47,12 @@ public class ResourceSelfRegistrationController {
 
     @PostMapping("/self-register")
     @PreAuthorize("hasAuthority('ROLE_SERVICE')")
-    public ResponseEntity<Void> autoRegistrarOperaciones(@Valid @RequestBody ResourceSelfRegistrationDTO dto) {
+    public ResponseEntity<Void> autoRegistrarOperaciones(
+            @Valid @RequestBody ResourceSelfRegistrationDTO dto) {
         // Que venga 'resource' (o su alias 'name') lo valida el propio DTO con @AssertTrue, no un
         // if acá: así el 400 sale por el mismo camino que cualquier otro campo inválido.
-        service.registrarOperacionesEnTodasLasEmpresas(dto.resourceEfectivo(), aOperationTemplates(dto));
+        service.registrarOperacionesEnTodasLasEmpresas(
+                dto.resourceEfectivo(), aOperationTemplates(dto));
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

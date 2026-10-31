@@ -10,6 +10,7 @@ import com.atlas.supplychain.auth.shared.infrastructure.dto.PageRequestDto;
 import com.atlas.supplychain.auth.shared.infrastructure.dto.SearchRequestDto;
 import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authorization.ModuleDTO;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +18,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/modules")
@@ -32,8 +31,7 @@ public class ModuleController {
     @PostMapping
     @PreAuthorize("hasAuthority('MODULOS:CREAR')")
     public ResponseEntity<Void> crearModulo(
-            @Validated({ModuleDTO.Crear.class})
-            @RequestBody ModuleDTO dto,
+            @Validated({ModuleDTO.Crear.class}) @RequestBody ModuleDTO dto,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
         Module module = mapper.dtoToDomain(dto, principal.getIdCompany());
@@ -44,9 +42,9 @@ public class ModuleController {
     @PatchMapping
     @PreAuthorize("hasAuthority('MODULOS:EDITAR')")
     public ResponseEntity<Void> actualizarModulo(
-            @Validated({ModuleDTO.Actualizar.class})
-            @RequestBody ModuleDTO dto,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @Validated({ModuleDTO.Actualizar.class}) @RequestBody ModuleDTO dto,
+            @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
         Module module = mapper.dtoToDomain(dto, principal.getIdCompany());
         service.actualizarModulo(module);
@@ -56,19 +54,18 @@ public class ModuleController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('MODULOS:CONSULTAR')")
     public ResponseEntity<ModuleDTO> obtenerModuloPorId(
-            @NotNull @PathVariable Long id,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @NotNull @PathVariable Long id, @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
         return ResponseEntity.ok(
-                mapper.domainToDto(service.obtenerModuloPorId(principal.getIdCompany(), id))
-        );
+                mapper.domainToDto(service.obtenerModuloPorId(principal.getIdCompany(), id)));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('MODULOS:ELIMINAR')")
     public ResponseEntity<Void> eliminarModulo(
-            @NotNull @PathVariable Long id,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @NotNull @PathVariable Long id, @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
         service.eliminarModulo(principal.getIdCompany(), id);
         return ResponseEntity.ok().build();
@@ -80,8 +77,10 @@ public class ModuleController {
             @NotNull @PathVariable Boolean state,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        List<ModuleDTO> modulos = service.listarModulosPorState(principal.getIdCompany(), state)
-                .stream().map(mapper::domainToDto).toList();
+        List<ModuleDTO> modulos =
+                service.listarModulosPorState(principal.getIdCompany(), state).stream()
+                        .map(mapper::domainToDto)
+                        .toList();
 
         return ResponseEntity.ok(modulos);
     }
@@ -93,8 +92,11 @@ public class ModuleController {
             @RequestBody SearchRequestDto searchRequest,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        PagedResult<Module> result = service.listarModulosPaginados(
-                principal.getIdCompany(), searchRequest.getFilters(), pageRequest.toPageQuery(searchRequest.getSorts()));
+        PagedResult<Module> result =
+                service.listarModulosPaginados(
+                        principal.getIdCompany(),
+                        searchRequest.getFilters(),
+                        pageRequest.toPageQuery(searchRequest.getSorts()));
         List<ModuleDTO> content = result.content().stream().map(mapper::domainToDto).toList();
         return new PagedResult<>(content, result.page(), result.size(), result.totalElements());
     }

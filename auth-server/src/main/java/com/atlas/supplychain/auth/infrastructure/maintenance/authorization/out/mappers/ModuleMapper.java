@@ -5,7 +5,9 @@ import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entit
 import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authorization.ModuleDTO;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring", uses = { OperationMapper.class })
+@Mapper(
+        componentModel = "spring",
+        uses = {OperationMapper.class})
 public interface ModuleMapper {
 
     // ENTITY → DOMAIN
@@ -36,4 +38,3 @@ public interface ModuleMapper {
     @Mapping(target = "operationEntitySet", ignore = true)
     void update(Module domain, @MappingTarget ModuleEntity entity);
 }
-

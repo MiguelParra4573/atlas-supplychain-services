@@ -4,7 +4,6 @@ import com.atlas.supplychain.auth.domain.common.exceptions.DuplicateRecordExcept
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.BusinessProcess;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.CompanyProcess;
-
 import java.util.List;
 
 /** Catálogo de procesos de negocio y su activación por empresa (Spec 1.0). */
@@ -22,5 +21,6 @@ public interface BusinessProcessService {
 
     List<CompanyProcess> listarPorEmpresa(String idCompany);
 
-    void activar(String idCompany, Long idBusinessProcess, boolean active) throws EntityNotFoundException;
+    void activar(String idCompany, Long idBusinessProcess, boolean active)
+            throws EntityNotFoundException;
 }

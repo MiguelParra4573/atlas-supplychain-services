@@ -7,9 +7,8 @@ import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
 import com.atlas.supplychain.auth.domain.shared.query.FilterCriterion;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class ModuleServiceImpl implements ModuleService {
@@ -47,7 +46,8 @@ public class ModuleServiceImpl implements ModuleService {
     }
 
     @Override
-    public Module obtenerModuloPorId(String idCompany, Long idModule) throws EntityNotFoundException {
+    public Module obtenerModuloPorId(String idCompany, Long idModule)
+            throws EntityNotFoundException {
         return repository.obtenerModuloPorId(idCompany, idModule);
     }
 
@@ -57,7 +57,8 @@ public class ModuleServiceImpl implements ModuleService {
     }
 
     @Override
-    public PagedResult<Module> listarModulosPaginados(String idCompany, List<FilterCriterion> filters, PageQuery pageQuery) {
+    public PagedResult<Module> listarModulosPaginados(
+            String idCompany, List<FilterCriterion> filters, PageQuery pageQuery) {
         return repository.listarModulosPaginados(idCompany, filters, pageQuery);
     }
 }

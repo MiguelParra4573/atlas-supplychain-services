@@ -1,9 +1,8 @@
 package com.atlas.supplychain.auth.infrastructure.common.db.query.predicate;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -15,7 +14,9 @@ public class PredicateBuilderRegistry {
         return builders.stream()
                 .filter(b -> b.supports(type))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "No se encontró PredicateBuilder para el tipo: " + type));
+                .orElseThrow(
+                        () ->
+                                new IllegalArgumentException(
+                                        "No se encontró PredicateBuilder para el tipo: " + type));
     }
 }

@@ -8,9 +8,9 @@ import lombok.NoArgsConstructor;
 /**
  * Carpeta plegable dentro de UN módulo puntual (Spec 1.4) -- ej. el módulo "Nómina" agrupa las
  * carpetas "Solicitudes" y "Aprobaciones", cada una con sus propias pantallas. A diferencia de
- * {@link MenuCategory} (catálogo global de la empresa, reutilizable entre módulos), una
- * {@code ScreenGroup} pertenece a un {@code idModule} específico y no tiene sentido fuera de él --
- * por eso no lleva {@code code} único global, solo {@code name} dentro de su módulo.
+ * {@link MenuCategory} (catálogo global de la empresa, reutilizable entre módulos), una {@code
+ * ScreenGroup} pertenece a un {@code idModule} específico y no tiene sentido fuera de él -- por eso
+ * no lleva {@code code} único global, solo {@code name} dentro de su módulo.
  */
 @Data
 @Builder

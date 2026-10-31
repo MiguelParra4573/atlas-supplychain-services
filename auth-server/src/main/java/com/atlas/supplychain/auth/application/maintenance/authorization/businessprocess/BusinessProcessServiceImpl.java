@@ -9,9 +9,8 @@ import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundExcepti
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.BusinessProcess;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.CompanyProcess;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.BusinessProcessRepository;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class BusinessProcessServiceImpl implements BusinessProcessService {
@@ -28,7 +27,8 @@ public class BusinessProcessServiceImpl implements BusinessProcessService {
         // `code` es la referencia estable del proceso y tiene UNIQUE en la base: se valida acá para
         // devolver 409 con mensaje propio en vez de dejar escapar la violación de constraint.
         if (repository.existsByCode(process.getCode())) {
-            throw new DuplicateRecordException("Ya existe un proceso de negocio con el código " + process.getCode());
+            throw new DuplicateRecordException(
+                    "Ya existe un proceso de negocio con el código " + process.getCode());
         }
         repository.crear(process);
     }
@@ -39,8 +39,10 @@ public class BusinessProcessServiceImpl implements BusinessProcessService {
         // `code` al de otro proceso viola el UNIQUE y sale como 409 genérico ("existen datos
         // relacionados"), que describe un caso distinto.
         BusinessProcess existente = repository.obtenerPorId(process.getIdBusinessProcess());
-        if (!existente.getCode().equals(process.getCode()) && repository.existsByCode(process.getCode())) {
-            throw new DuplicateRecordException("Ya existe un proceso de negocio con el código " + process.getCode());
+        if (!existente.getCode().equals(process.getCode())
+                && repository.existsByCode(process.getCode())) {
+            throw new DuplicateRecordException(
+                    "Ya existe un proceso de negocio con el código " + process.getCode());
         }
         repository.actualizar(process);
     }
@@ -68,11 +70,12 @@ public class BusinessProcessServiceImpl implements BusinessProcessService {
     /**
      * Es la acción con consecuencia comercial de toda la spec -- desactivar corta el acceso a las
      * pantallas del proceso para todos los usuarios de la empresa -- así que queda registrada. La
-     * auditoría en este repo es explícita, no automática: mismo patrón que
-     * {@code GrantedPermissionServiceImpl}.
+     * auditoría en este repo es explícita, no automática: mismo patrón que {@code
+     * GrantedPermissionServiceImpl}.
      */
     @Override
-    public void activar(String idCompany, Long idBusinessProcess, boolean active) throws EntityNotFoundException {
+    public void activar(String idCompany, Long idBusinessProcess, boolean active)
+            throws EntityNotFoundException {
         // La existencia del proceso la valida `repository.activar` dentro de su propia transacción:
         // acá solo se lee para el resumen de auditoría. Esta capa no puede declarar transacciones
         // (`ImportControl` prohíbe Spring en `application/`), así que la atomicidad del upsert vive
@@ -80,23 +83,43 @@ public class BusinessProcessServiceImpl implements BusinessProcessService {
         BusinessProcess proceso = repository.obtenerPorId(idBusinessProcess);
         repository.activar(idCompany, idBusinessProcess, active);
 
-        auditar(active ? "ACTIVAR" : "DESACTIVAR",
+        auditar(
+                active ? "ACTIVAR" : "DESACTIVAR",
                 active ? "PROCESO_ACTIVADO" : "PROCESO_DESACTIVADO",
                 String.valueOf(idBusinessProcess),
                 active ? "INFO" : "WARN",
-                (active ? "Se activó" : "Se desactivó") + " el proceso " + proceso.getCode()
-                        + " para la empresa " + idCompany,
+                (active ? "Se activó" : "Se desactivó")
+                        + " el proceso "
+                        + proceso.getCode()
+                        + " para la empresa "
+                        + idCompany,
                 idCompany);
     }
 
-    private void auditar(String accionTipo, String accionNombre, String entidadId, String severity,
-                          String resumen, String fallbackCompanyId) {
+    private void auditar(
+            String accionTipo,
+            String accionNombre,
+            String entidadId,
+            String severity,
+            String resumen,
+            String fallbackCompanyId) {
         Actor actor = currentActor.actorActual();
         String companyId = actor != null ? actor.idCompany() : fallbackCompanyId;
         String userId = actor != null ? actor.idUser() : null;
         String username = actor != null ? actor.username() : null;
         String rolPrincipal = actor != null ? actor.rolPrincipal() : null;
-        auditTrail.registrar(new AuditEventCommand(accionTipo, accionNombre, ENTIDAD_TIPO_PROCESO, entidadId,
-                MODULO_ADMINISTRACION, severity, companyId, userId, username, rolPrincipal, resumen));
+        auditTrail.registrar(
+                new AuditEventCommand(
+                        accionTipo,
+                        accionNombre,
+                        ENTIDAD_TIPO_PROCESO,
+                        entidadId,
+                        MODULO_ADMINISTRACION,
+                        severity,
+                        companyId,
+                        userId,
+                        username,
+                        rolPrincipal,
+                        resumen));
     }
 }

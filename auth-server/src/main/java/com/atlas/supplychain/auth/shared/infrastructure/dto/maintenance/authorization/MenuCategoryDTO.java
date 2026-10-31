@@ -17,23 +17,24 @@ public class MenuCategoryDTO {
 
     private Long idMenuCategory;
 
-    @NotBlank(groups = {Crear.class, Actualizar.class})
-    @Size(max = 50, groups = {Crear.class, Actualizar.class})
+    @NotBlank(groups = {Crear.class, Actualizar.class}) @Size(
+            max = 50,
+            groups = {Crear.class, Actualizar.class})
     private String code;
 
-    @NotBlank(groups = {Crear.class, Actualizar.class})
-    @Size(max = 150, groups = {Crear.class, Actualizar.class})
+    @NotBlank(groups = {Crear.class, Actualizar.class}) @Size(
+            max = 150,
+            groups = {Crear.class, Actualizar.class})
     private String name;
 
-    @Size(max = 100)
-    private String icon;
+    @Size(max = 100) private String icon;
 
     /** Opcional: {@code null} en el alta se guarda como 0. */
     private Integer displayOrder;
 
-    @NotNull(groups = {Crear.class, Actualizar.class})
-    private Boolean state;
+    @NotNull(groups = {Crear.class, Actualizar.class}) private Boolean state;
 
     public interface Crear {}
+
     public interface Actualizar {}
 }

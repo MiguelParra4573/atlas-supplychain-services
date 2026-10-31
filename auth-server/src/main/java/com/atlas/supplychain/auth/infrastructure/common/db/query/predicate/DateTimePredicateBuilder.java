@@ -5,12 +5,12 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.DatePath;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.PathBuilder;
-import org.springframework.stereotype.Component;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import org.springframework.stereotype.Component;
 
 @Component
 public class DateTimePredicateBuilder implements PredicateBuilder {
@@ -41,13 +41,12 @@ public class DateTimePredicateBuilder implements PredicateBuilder {
         throw new IllegalArgumentException("Tipo temporal no soportado: " + type.getSimpleName());
     }
 
-
     private BooleanExpression buildLocalDatePredicate(
             DatePath<LocalDate> path, String operator, List<String> values, boolean multiValue) {
 
         LocalDate v1 = LocalDate.parse(values.get(0));
 
-        return switch (operator.toLowerCase()) {
+        return switch (operator.toLowerCase(Locale.ROOT)) {
             case "=" -> path.eq(v1);
             case "!=" -> path.ne(v1);
             case ">" -> path.gt(v1);
@@ -62,17 +61,21 @@ public class DateTimePredicateBuilder implements PredicateBuilder {
                 yield path.between(v1, v2);
             }
 
-            default -> throw new IllegalArgumentException("Operador de fecha no soportado: " + operator);
+            default ->
+                    throw new IllegalArgumentException(
+                            "Operador de fecha no soportado: " + operator);
         };
     }
 
-
     private BooleanExpression buildLocalDateTimePredicate(
-            DateTimePath<LocalDateTime> path, String operator, List<String> values, boolean multiValue) {
+            DateTimePath<LocalDateTime> path,
+            String operator,
+            List<String> values,
+            boolean multiValue) {
 
         LocalDateTime v1 = LocalDateTime.parse(values.get(0));
 
-        return switch (operator.toLowerCase()) {
+        return switch (operator.toLowerCase(Locale.ROOT)) {
             case "=" -> path.eq(v1);
             case "!=" -> path.ne(v1);
             case ">" -> path.gt(v1);
@@ -82,18 +85,20 @@ public class DateTimePredicateBuilder implements PredicateBuilder {
 
             case "between" -> {
                 if (!multiValue || values.size() < 2)
-                    throw new IllegalArgumentException("BETWEEN requiere 2 valores para LocalDateTime");
+                    throw new IllegalArgumentException(
+                            "BETWEEN requiere 2 valores para LocalDateTime");
                 LocalDateTime v2 = LocalDateTime.parse(values.get(1));
                 yield path.between(v1, v2);
             }
 
-            default -> throw new IllegalArgumentException("Operador de fecha y hora no soportado: " + operator);
+            default ->
+                    throw new IllegalArgumentException(
+                            "Operador de fecha y hora no soportado: " + operator);
         };
     }
 
-
     private Class<?> resolveTemporalType(String type) {
-        return switch (type.toLowerCase()) {
+        return switch (type.toLowerCase(Locale.ROOT)) {
             case "date" -> LocalDate.class;
             case "datetime", "timestamp" -> LocalDateTime.class;
             default -> throw new IllegalArgumentException("Tipo de fecha desconocido: " + type);

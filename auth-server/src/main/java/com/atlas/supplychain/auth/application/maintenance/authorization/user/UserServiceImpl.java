@@ -13,13 +13,14 @@ import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
 import com.atlas.supplychain.auth.domain.shared.query.FilterCriterion;
-import lombok.RequiredArgsConstructor;
-
 import java.text.Normalizer;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -41,9 +42,9 @@ public class UserServiceImpl implements UserService {
 
     /**
      * username = nombre.apellido normalizado (sin tildes/espacios, minúsculas); si ya existe,
-     * agrega un sufijo secuencial (2, 3, ...) -- nunca random, para que sea memorizable y no
-     * genere bloqueos de cuenta por intentos con un username mal recordado (decisión del
-     * usuario 2026-09-02).
+     * agrega un sufijo secuencial (2, 3, ...) -- nunca random, para que sea memorizable y no genere
+     * bloqueos de cuenta por intentos con un username mal recordado (decisión del usuario
+     * 2026-09-02).
      */
     private String generarUsername(String name, String lastName) {
         String base = normalizar(name) + "." + normalizar(lastName);
@@ -57,27 +58,32 @@ public class UserServiceImpl implements UserService {
     }
 
     private String normalizar(String valor) {
-        String sinTildes = Normalizer.normalize(valor, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
-        return sinTildes.toLowerCase().replaceAll("[^a-z0-9]", "");
+        String sinTildes =
+                Normalizer.normalize(valor, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+        return sinTildes.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
     }
 
     /**
-     * Spec 1.24: publica {@code USUARIO_CREADO} vía Outbox en la misma transacción que el
-     * {@code INSERT} de arriba -- alimenta el read model CQRS de {@code ms-reporte} (Spec 4.4
-     * revisada), que necesita enterarse de altas de usuario sin llamadas REST síncronas.
+     * Spec 1.24: publica {@code USUARIO_CREADO} vía Outbox en la misma transacción que el {@code
+     * INSERT} de arriba -- alimenta el read model CQRS de {@code ms-reporte} (Spec 4.4 revisada),
+     * que necesita enterarse de altas de usuario sin llamadas REST síncronas.
      */
     private void registrarUsuarioCreado(User user) {
-        outboxRepository.append(new OutboxEventCommand(
-                "USER",
-                user.getIdUser(),
-                "USUARIO_CREADO",
-                snapshotUsuario(user)));
+        outboxRepository.append(
+                new OutboxEventCommand(
+                        "USER", user.getIdUser(), "USUARIO_CREADO", snapshotUsuario(user)));
     }
 
     @Override
     public void actualizarUsuario(User user) throws EntityNotFoundException {
-        User existente = repository.obtenerUsuarioPorId(user.getIdCompany(), user.getIdUser())
-                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado ID %s ".formatted(user.getIdUser())));
+        User existente =
+                repository
+                        .obtenerUsuarioPorId(user.getIdCompany(), user.getIdUser())
+                        .orElseThrow(
+                                () ->
+                                        new EntityNotFoundException(
+                                                "Usuario no encontrado ID %s "
+                                                        .formatted(user.getIdUser())));
 
         boolean cambioDeRol = !Objects.equals(idRol(existente.getRole()), idRol(user.getRole()));
         boolean cambioDeEmail = !Objects.equals(existente.getEmail(), user.getEmail());
@@ -109,26 +115,23 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Spec 1.24: publica {@code USUARIO_ACTUALIZADO} vía Outbox con el snapshot completo
-     * post-update (no un delta) cuando cambia {@code name}/{@code lastName}/{@code email}/
-     * {@code idRole}/{@code state} -- simplifica al consumidor de {@code ms-reporte} (upsert
-     * directo, sin merge de campos parciales). No reemplaza {@code USUARIO_EMAIL_CAMBIADO}
-     * (registrado aparte, arriba): cuando el email cambia se publican ambos en la misma
-     * transacción.
+     * post-update (no un delta) cuando cambia {@code name}/{@code lastName}/{@code email}/ {@code
+     * idRole}/{@code state} -- simplifica al consumidor de {@code ms-reporte} (upsert directo, sin
+     * merge de campos parciales). No reemplaza {@code USUARIO_EMAIL_CAMBIADO} (registrado aparte,
+     * arriba): cuando el email cambia se publican ambos en la misma transacción.
      */
     private void registrarUsuarioActualizado(User user) {
-        outboxRepository.append(new OutboxEventCommand(
-                "USER",
-                user.getIdUser(),
-                "USUARIO_ACTUALIZADO",
-                snapshotUsuario(user)));
+        outboxRepository.append(
+                new OutboxEventCommand(
+                        "USER", user.getIdUser(), "USUARIO_ACTUALIZADO", snapshotUsuario(user)));
     }
 
     /**
      * {@code Map.of(...)} rechaza valores {@code null} con NPE -- {@code name}/{@code lastName}/
      * {@code email} pueden no estar poblados en todo objeto de dominio (p. ej. construcciones
      * parciales en tests, o un futuro estado transitorio), así que se arma con un {@link Map}
-     * mutable que sí los tolera. La serialización a JSON de infrastructure (Jackson) representa
-     * un valor {@code null} como {@code null}, no como texto vacío.
+     * mutable que sí los tolera. La serialización a JSON de infrastructure (Jackson) representa un
+     * valor {@code null} como {@code null}, no como texto vacío.
      */
     private static Map<String, String> snapshotUsuario(User user) {
         Map<String, String> snapshot = new LinkedHashMap<>();
@@ -144,20 +147,21 @@ public class UserServiceImpl implements UserService {
 
     /**
      * Spec 3.4: publica {@code USUARIO_EMAIL_CAMBIADO} vía Outbox en la misma transacción que el
-     * {@code UPDATE} de arriba (este método corre dentro de la transacción RW que
-     * {@code ApplicationTransactionConfig} aplica por convención de nombre a
-     * {@code actualizarUsuario}) -- ms-notificacion sincroniza el email copiado en
-     * {@code recipient_group_members} al consumir este evento.
+     * {@code UPDATE} de arriba (este método corre dentro de la transacción RW que {@code
+     * ApplicationTransactionConfig} aplica por convención de nombre a {@code actualizarUsuario}) --
+     * ms-notificacion sincroniza el email copiado en {@code recipient_group_members} al consumir
+     * este evento.
      */
     private void registrarCambioDeEmail(User user) {
-        outboxRepository.append(new OutboxEventCommand(
-                "USER",
-                user.getIdUser(),
-                "USUARIO_EMAIL_CAMBIADO",
-                Map.of("idUser", user.getIdUser(), "email", user.getEmail())));
+        outboxRepository.append(
+                new OutboxEventCommand(
+                        "USER",
+                        user.getIdUser(),
+                        "USUARIO_EMAIL_CAMBIADO",
+                        Map.of("idUser", user.getIdUser(), "email", user.getEmail())));
     }
 
-    private static Long idRol(Role role) {
+    private static @Nullable Long idRol(@Nullable Role role) {
         return role == null ? null : role.getIdRol();
     }
 
@@ -168,19 +172,19 @@ public class UserServiceImpl implements UserService {
         String username = actor != null ? actor.username() : null;
         String rolPrincipal = actor != null ? actor.rolPrincipal() : null;
 
-        auditTrail.registrar(new AuditEventCommand(
-                "UPDATE",
-                "CAMBIO_ROL_USUARIO",
-                "USUARIO",
-                user.getIdUser(),
-                "ADMINISTRACION",
-                "HIGH",
-                companyId,
-                userId,
-                username,
-                rolPrincipal,
-                "Cambio de rol del usuario " + user.getIdUser()
-        ));
+        auditTrail.registrar(
+                new AuditEventCommand(
+                        "UPDATE",
+                        "CAMBIO_ROL_USUARIO",
+                        "USUARIO",
+                        user.getIdUser(),
+                        "ADMINISTRACION",
+                        "HIGH",
+                        companyId,
+                        userId,
+                        username,
+                        rolPrincipal,
+                        "Cambio de rol del usuario " + user.getIdUser()));
     }
 
     @Override
@@ -190,23 +194,29 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
-     * Spec 1.24: publica {@code USUARIO_ELIMINADO} vía Outbox en la misma transacción que el
-     * {@code DELETE} de arriba -- {@code UserRepositoryImpl.eliminarUsuario} hace baja física
-     * ({@code this.delete(entity)}), así que el consumidor de {@code ms-reporte} necesita
-     * enterarse explícitamente para borrar (no desactivar) su copia del read model.
+     * Spec 1.24: publica {@code USUARIO_ELIMINADO} vía Outbox en la misma transacción que el {@code
+     * DELETE} de arriba -- {@code UserRepositoryImpl.eliminarUsuario} hace baja física ({@code
+     * this.delete(entity)}), así que el consumidor de {@code ms-reporte} necesita enterarse
+     * explícitamente para borrar (no desactivar) su copia del read model.
      */
     private void registrarUsuarioEliminado(String idUsuario, String idCompany) {
-        outboxRepository.append(new OutboxEventCommand(
-                "USER",
-                idUsuario,
-                "USUARIO_ELIMINADO",
-                Map.of("idUser", idUsuario, "idCompany", idCompany)));
+        outboxRepository.append(
+                new OutboxEventCommand(
+                        "USER",
+                        idUsuario,
+                        "USUARIO_ELIMINADO",
+                        Map.of("idUser", idUsuario, "idCompany", idCompany)));
     }
 
     @Override
-    public User obtenerUsuarioPorId(String idUsuario, String idCompany) throws EntityNotFoundException {
-        return repository.obtenerUsuarioPorId(idCompany, idUsuario)
-                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado ID %s ".formatted(idUsuario)));
+    public User obtenerUsuarioPorId(String idUsuario, String idCompany)
+            throws EntityNotFoundException {
+        return repository
+                .obtenerUsuarioPorId(idCompany, idUsuario)
+                .orElseThrow(
+                        () ->
+                                new EntityNotFoundException(
+                                        "Usuario no encontrado ID %s ".formatted(idUsuario)));
     }
 
     @Override
@@ -215,7 +225,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public PagedResult<User> buscarUsuariosPaginados(List<FilterCriterion> filters, PageQuery pageQuery, String idCompany) {
+    public PagedResult<User> buscarUsuariosPaginados(
+            List<FilterCriterion> filters, PageQuery pageQuery, String idCompany) {
         return repository.listarUsuariosPaginadosPorFiltros(idCompany, filters, pageQuery);
     }
 }

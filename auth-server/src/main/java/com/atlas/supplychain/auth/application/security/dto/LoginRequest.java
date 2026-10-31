@@ -9,8 +9,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class LoginRequest {
-    @NotBlank
-    private String usuario;
-    @NotBlank
-    private String contrasena;
+    @NotBlank private String usuario;
+    @NotBlank private String contrasena;
 }

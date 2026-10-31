@@ -7,10 +7,10 @@ import lombok.NoArgsConstructor;
 
 /**
  * Etapa ordenada de un {@link BusinessProcess} (Spec 1.3): Clientes -&gt; Cotización -&gt; Pedido
- * -&gt; Factura. Catálogo del proveedor, global como {@link BusinessProcess} -- no lleva
- * {@code idCompany}. {@code sequence} es el orden por defecto del menú para cualquier
- * {@code Operation} que declare esta etapa; la empresa puede sobreescribirlo con
- * {@code module_operation.display_order}.
+ * -&gt; Factura. Catálogo del proveedor, global como {@link BusinessProcess} -- no lleva {@code
+ * idCompany}. {@code sequence} es el orden por defecto del menú para cualquier {@code Operation}
+ * que declare esta etapa; la empresa puede sobreescribirlo con {@code
+ * module_operation.display_order}.
  */
 @Data
 @Builder

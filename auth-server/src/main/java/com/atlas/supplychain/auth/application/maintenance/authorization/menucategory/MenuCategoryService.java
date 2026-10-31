@@ -6,7 +6,6 @@ import com.atlas.supplychain.auth.domain.maintenance.authorization.model.MenuCat
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
 import com.atlas.supplychain.auth.domain.shared.query.FilterCriterion;
-
 import java.util.List;
 
 public interface MenuCategoryService {
@@ -21,5 +20,6 @@ public interface MenuCategoryService {
 
     List<MenuCategory> listarPorState(String idCompany, Boolean state);
 
-    PagedResult<MenuCategory> listarPaginado(String idCompany, List<FilterCriterion> filters, PageQuery pageQuery);
+    PagedResult<MenuCategory> listarPaginado(
+            String idCompany, List<FilterCriterion> filters, PageQuery pageQuery);
 }

@@ -3,7 +3,6 @@ package com.atlas.supplychain.auth.application.maintenance.authorization.process
 import com.atlas.supplychain.auth.domain.common.exceptions.DuplicateRecordException;
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.ProcessStage;
-
 import java.util.List;
 
 public interface ProcessStageService {

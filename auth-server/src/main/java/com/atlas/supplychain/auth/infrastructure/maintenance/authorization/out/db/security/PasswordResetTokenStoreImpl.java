@@ -4,12 +4,11 @@ import com.atlas.supplychain.auth.application.security.contracts.PasswordResetTo
 import com.atlas.supplychain.auth.application.security.dto.ResetTokenData;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.security.PasswordResetToken;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.security.PasswordResetTokenRepository;
+import java.time.Instant;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -26,13 +25,14 @@ public class PasswordResetTokenStoreImpl implements PasswordResetTokenStore {
     @Override
     @Transactional
     public void save(String idUser, String companyId, String tokenHash, Instant expiresAt) {
-        repository.save(PasswordResetToken.builder()
-                .tokenHash(tokenHash)
-                .idUser(idUser)
-                .idCompany(companyId)
-                .createdAt(Instant.now())
-                .expiresAt(expiresAt)
-                .build());
+        repository.save(
+                PasswordResetToken.builder()
+                        .tokenHash(tokenHash)
+                        .idUser(idUser)
+                        .idCompany(companyId)
+                        .createdAt(Instant.now())
+                        .expiresAt(expiresAt)
+                        .build());
     }
 
     @Override
@@ -52,7 +52,6 @@ public class PasswordResetTokenStoreImpl implements PasswordResetTokenStore {
                 token.getIdUser(),
                 token.getIdCompany(),
                 token.getExpiresAt(),
-                token.getUsedAt() != null
-        );
+                token.getUsedAt() != null);
     }
 }

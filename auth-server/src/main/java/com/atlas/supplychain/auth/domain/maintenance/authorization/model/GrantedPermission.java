@@ -18,5 +18,4 @@ public class GrantedPermission {
     private Role role;
 
     private Operation operation;
-
 }

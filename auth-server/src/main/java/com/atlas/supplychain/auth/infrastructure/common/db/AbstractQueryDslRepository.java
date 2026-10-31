@@ -1,11 +1,11 @@
 package com.atlas.supplychain.auth.infrastructure.common.db;
 
-import com.atlas.supplychain.auth.infrastructure.common.db.query.predicate.PredicateBuilder;
-import com.atlas.supplychain.auth.infrastructure.common.db.query.predicate.PredicateBuilderRegistry;
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
 import com.atlas.supplychain.auth.domain.shared.query.FilterCriterion;
 import com.atlas.supplychain.auth.domain.shared.query.SortCriterion;
+import com.atlas.supplychain.auth.infrastructure.common.db.query.predicate.PredicateBuilder;
+import com.atlas.supplychain.auth.infrastructure.common.db.query.predicate.PredicateBuilderRegistry;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.JPQLQuery;
@@ -14,6 +14,12 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.jpa.impl.JPAUpdateClause;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Id;
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,13 +27,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.Querydsl;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.support.PageableExecutionUtils;
-
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class AbstractQueryDslRepository<T, ID> {
@@ -40,7 +39,10 @@ public abstract class AbstractQueryDslRepository<T, ID> {
     private final Querydsl querydsl;
     private final PredicateBuilderRegistry predicateRegistry;
 
-    protected AbstractQueryDslRepository(Class<T> domainClazz, EntityManager entityManager, PredicateBuilderRegistry predicateRegistry) {
+    protected AbstractQueryDslRepository(
+            Class<T> domainClazz,
+            EntityManager entityManager,
+            PredicateBuilderRegistry predicateRegistry) {
         this.clazz = domainClazz;
         this.entityManager = entityManager;
         this.predicateRegistry = predicateRegistry;
@@ -52,8 +54,7 @@ public abstract class AbstractQueryDslRepository<T, ID> {
     }
 
     public Optional<T> findByIdAndCompany(String idCompany, ID id) {
-        JPAQuery<T> query = forCompany(newQuery(), idCompany)
-                .where(root.get("id").eq(id));
+        JPAQuery<T> query = forCompany(newQuery(), idCompany).where(root.get("id").eq(id));
 
         if (hasField("estado")) {
             query.where(root.getBoolean("estado").isTrue());
@@ -90,12 +91,12 @@ public abstract class AbstractQueryDslRepository<T, ID> {
     // ============== FILTROS GENERALES (EMPRESA / ESTADO) ==============
 
     /**
-     * Único punto de paso obligado para el filtro de tenant: {@link #findAllByCompany},
-     * {@link #findByIdAndCompany} y {@link #filterAndSortPaged} pasan todos por acá. No hay
-     * forma de obtener una query sin filtrar -- idCompany ausente, en blanco, o una entidad
-     * sin campo idCompany son todos bugs de programación (endpoint sin auth, adaptador que
-     * no propagó el principal), no entrada de usuario, y fallan ruidosamente en vez de
-     * degradar en silencio a "todas las empresas".
+     * Único punto de paso obligado para el filtro de tenant: {@link #findAllByCompany}, {@link
+     * #findByIdAndCompany} y {@link #filterAndSortPaged} pasan todos por acá. No hay forma de
+     * obtener una query sin filtrar -- idCompany ausente, en blanco, o una entidad sin campo
+     * idCompany son todos bugs de programación (endpoint sin auth, adaptador que no propagó el
+     * principal), no entrada de usuario, y fallan ruidosamente en vez de degradar en silencio a
+     * "todas las empresas".
      */
     protected JPAQuery<T> forCompany(JPAQuery<T> query, String idCompany) {
         requireCompany(idCompany);
@@ -103,19 +104,24 @@ public abstract class AbstractQueryDslRepository<T, ID> {
     }
 
     /**
-     * Misma validación que {@link #forCompany}, para subclases que arman su propia query con
-     * el Q-type estático de QueryDSL en vez del {@code root} genérico (no se pueden mezclar
-     * ambos en un mismo query) y aun así necesitan el mismo guardia -- fallar ruidoso en vez
-     * de dejar pasar un idCompany ausente que produciría 0 filas en silencio.
+     * Misma validación que {@link #forCompany}, para subclases que arman su propia query con el
+     * Q-type estático de QueryDSL en vez del {@code root} genérico (no se pueden mezclar ambos en
+     * un mismo query) y aun así necesitan el mismo guardia -- fallar ruidoso en vez de dejar pasar
+     * un idCompany ausente que produciría 0 filas en silencio.
      */
     protected void requireCompany(String idCompany) {
         if (idCompany == null || idCompany.isBlank()) {
             throw new TenantScopeRequiredException(
-                    "idCompany requerido para consultar " + clazz.getSimpleName() + ", recibido: " + (idCompany == null ? "null" : "en blanco"));
+                    "idCompany requerido para consultar "
+                            + clazz.getSimpleName()
+                            + ", recibido: "
+                            + (idCompany == null ? "null" : "en blanco"));
         }
         if (!hasField("idCompany")) {
             throw new TenantScopeRequiredException(
-                    clazz.getSimpleName() + " no tiene campo idCompany -- no se puede garantizar el aislamiento de tenant");
+                    clazz.getSimpleName()
+                            + " no tiene campo idCompany -- no se puede garantizar el aislamiento"
+                            + " de tenant");
         }
     }
 
@@ -126,22 +132,22 @@ public abstract class AbstractQueryDslRepository<T, ID> {
 
     // ================== FILTROS DINÁMICOS ==================
 
-    /**
-     * Aplica filtros dinámicos usando los Strategy (PredicateBuilder).
-     */
+    /** Aplica filtros dinámicos usando los Strategy (PredicateBuilder). */
     protected JPAQuery<T> applyFilters(JPAQuery<T> query, List<FilterCriterion> filters) {
         if (filters == null || filters.isEmpty()) return query;
 
-        List<BooleanExpression> predicates = filters.stream().map(this::buildPredicate).filter(Objects::nonNull).collect(Collectors.toList());
+        List<BooleanExpression> predicates =
+                filters.stream()
+                        .map(this::buildPredicate)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
 
         if (predicates.isEmpty()) return query;
 
         return query.where(predicates.toArray(BooleanExpression[]::new));
     }
 
-    /**
-     * Construye un BooleanExpression para un filtro individual.
-     */
+    /** Construye un BooleanExpression para un filtro individual. */
     private BooleanExpression buildPredicate(FilterCriterion fc) {
         try {
             Class<?> fieldType = getFieldType(fc.field());
@@ -157,27 +163,29 @@ public abstract class AbstractQueryDslRepository<T, ID> {
         try {
             return clazz.getDeclaredField(field).getType();
         } catch (NoSuchFieldException e) {
-            throw new IllegalArgumentException("El campo %s no existe en %s".formatted(field, clazz.getSimpleName()));
+            throw new IllegalArgumentException(
+                    "El campo %s no existe en %s".formatted(field, clazz.getSimpleName()));
         }
     }
 
     // ================= ORDENAMIENTO DINÁMICO =================
 
     /**
-     * ADR-006 ({@code docs/auditoria/11-backlog-y-adrs.md} §L): Dependabot marca
-     * {@code com.querydsl:querydsl-jpa} vulnerable a HQL injection vía {@code orderBy}
-     * (GHSA-6q3q-6v5j-h6vg / CVE-2024-49203) -- no explotable acá porque {@link #buildOrder}
-     * valida {@code criterio.field()} con {@code Class.getDeclaredField} (ver más abajo) antes
-     * de construir el {@code PathBuilder}: un nombre de campo Java real nunca contiene espacios,
+     * ADR-006 ({@code docs/auditoria/11-backlog-y-adrs.md} §L): Dependabot marca {@code
+     * com.querydsl:querydsl-jpa} vulnerable a HQL injection vía {@code orderBy}
+     * (GHSA-6q3q-6v5j-h6vg / CVE-2024-49203) -- no explotable acá porque {@link #buildOrder} valida
+     * {@code criterio.field()} con {@code Class.getDeclaredField} (ver más abajo) antes de
+     * construir el {@code PathBuilder}: un nombre de campo Java real nunca contiene espacios,
      * comillas ni palabras clave HQL, que es justo lo que el PoC del CVE necesita. No quitar esa
      * validación al tocar este método.
      */
     protected JPAQuery<T> applySorting(JPAQuery<T> query, List<SortCriterion> sorts) {
         if (sorts == null || sorts.isEmpty()) return query;
 
-        List<? extends OrderSpecifier<?>> orders = sorts.stream().map(sc -> buildOrder(root, sc)).toList();
+        List<? extends OrderSpecifier<?>> orders =
+                sorts.stream().map(sc -> buildOrder(root, sc)).toList();
 
-        return query.orderBy(orders.toArray(new OrderSpecifier[0]));
+        return query.orderBy(orders.toArray(new OrderSpecifier<?>[0]));
     }
 
     private OrderSpecifier<?> buildOrder(PathBuilder<?> path, SortCriterion criterio) {
@@ -205,31 +213,41 @@ public abstract class AbstractQueryDslRepository<T, ID> {
                 yield criterio.ascending() ? p.asc() : p.desc();
             }
             case "LocalDateTime" -> {
-                DateTimePath<LocalDateTime> p = path.getDateTime(criterio.field(), LocalDateTime.class);
+                DateTimePath<LocalDateTime> p =
+                        path.getDateTime(criterio.field(), LocalDateTime.class);
                 yield criterio.ascending() ? p.asc() : p.desc();
             }
             case "Boolean" -> {
                 BooleanPath p = path.getBoolean(criterio.field());
                 yield criterio.ascending() ? p.asc() : p.desc();
             }
-            default -> throw new IllegalArgumentException("Tipo no soportado para ordenar: " + type.getSimpleName());
+            default ->
+                    throw new IllegalArgumentException(
+                            "Tipo no soportado para ordenar: " + type.getSimpleName());
         };
     }
 
     // ================= PAGE GENERAL =================
 
     /**
-     * idCompany se aplica ANTES que los filtros dinámicos del cliente: evita que un
-     * filtro/búsqueda cruce el límite de tenant. No es opcional -- ver {@link #forCompany}.
+     * idCompany se aplica ANTES que los filtros dinámicos del cliente: evita que un filtro/búsqueda
+     * cruce el límite de tenant. No es opcional -- ver {@link #forCompany}.
      */
-    public Page<T> filterAndSortPaged(List<FilterCriterion> filters, List<SortCriterion> sorts, Pageable pageable, String idCompany) {
+    public Page<T> filterAndSortPaged(
+            List<FilterCriterion> filters,
+            List<SortCriterion> sorts,
+            Pageable pageable,
+            String idCompany) {
 
         JPAQuery<T> query = newQuery();
         query = forCompany(query, idCompany);
         query = applyFilters(query, filters);
         query = applySorting(query, sorts);
 
-        long total = query.fetchCount();
+        // fetchCount() está deprecado: para una consulta sin group by ni having arma el count
+        // por su cuenta igual que acá, pero clonar y contar con Wildcard.count es la forma no
+        // deprecada de pedir lo mismo sin tocar la query que después pagina.
+        long total = query.clone().select(Wildcard.count).fetchOne();
 
         List<T> content = query.offset(pageable.getOffset()).limit(pageable.getPageSize()).fetch();
 
@@ -244,7 +262,8 @@ public abstract class AbstractQueryDslRepository<T, ID> {
     }
 
     protected static <X> PagedResult<X> toPagedResult(Page<X> page) {
-        return new PagedResult<>(page.getContent(), page.getNumber(), page.getSize(), page.getTotalElements());
+        return new PagedResult<>(
+                page.getContent(), page.getNumber(), page.getSize(), page.getTotalElements());
     }
 
     // ================== PAGINACIÓN REUTILIZABLE ==================
@@ -255,11 +274,15 @@ public abstract class AbstractQueryDslRepository<T, ID> {
 
     protected <Q> Page<Q> executePagedQuery(JPQLQuery<Q> query, Pageable pageable) {
         JPQLQuery<Q> countQuery = cloneQuery((JPAQuery<Q>) query);
-        return PageableExecutionUtils.getPage(querydsl.applyPagination(pageable, query).fetch(), pageable, countQuery::fetchCount);
+        return PageableExecutionUtils.getPage(
+                querydsl.applyPagination(pageable, query).fetch(),
+                pageable,
+                countQuery::fetchCount);
     }
 
     // ================== UTILITARIOS REFLECTION ==================
 
+    @SuppressWarnings("ReturnValueIgnored") // el punto es la excepción, no el Field devuelto
     private boolean hasField(String field) {
         try {
             clazz.getDeclaredField(field);
@@ -270,8 +293,9 @@ public abstract class AbstractQueryDslRepository<T, ID> {
     }
 
     // ================== UPDATE GENÉRICO (OUTBOX / DTO PATCH) ==================
-    //TODO: Verificar si es es realmente util este metodo
-    public static <T> boolean buildUpdateClause(JPAUpdateClause updateClause, T dto, PathBuilder<?> entityPath, Class<?> entityClass) {
+    // TODO: Verificar si es es realmente util este metodo
+    public static <T> boolean buildUpdateClause(
+            JPAUpdateClause updateClause, T dto, PathBuilder<?> entityPath, Class<?> entityClass) {
 
         List<String> pkFieldNames = getPrimaryKeyFieldNames(entityClass);
         boolean hayActualizaciones = false;
@@ -293,10 +317,17 @@ public abstract class AbstractQueryDslRepository<T, ID> {
 
     // TODO: mejorar para claves compuestas reales (IdClass / EmbeddedId)
     private static List<String> getPrimaryKeyFieldNames(Class<?> entityClass) {
-        Field idField = Arrays.stream(entityClass.getDeclaredFields()).filter(field -> field.isAnnotationPresent(Id.class)).findFirst().orElseThrow(() -> new IllegalArgumentException("No se encontró campo @Id"));
+        Field idField =
+                Arrays.stream(entityClass.getDeclaredFields())
+                        .filter(field -> field.isAnnotationPresent(Id.class))
+                        .findFirst()
+                        .orElseThrow(
+                                () -> new IllegalArgumentException("No se encontró campo @Id"));
 
         if (!idField.getType().isPrimitive() && !idField.getType().equals(String.class)) {
-            return Arrays.stream(idField.getType().getDeclaredFields()).map(Field::getName).toList();
+            return Arrays.stream(idField.getType().getDeclaredFields())
+                    .map(Field::getName)
+                    .toList();
         } else {
             return Collections.singletonList(idField.getName());
         }

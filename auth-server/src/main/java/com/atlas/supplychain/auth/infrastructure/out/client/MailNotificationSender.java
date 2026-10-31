@@ -21,12 +21,14 @@ public class MailNotificationSender implements NotificationSender {
     private final MailProperties properties;
 
     @Override
-    public void enviarResetPassword(String destinatario, String nombreUsuario, String token, long minutosVigencia) {
+    public void enviarResetPassword(
+            String destinatario, String nombreUsuario, String token, long minutosVigencia) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(properties.getFrom());
         message.setTo(destinatario);
         message.setSubject("Restablecer contraseña - Atlas Supply Chain");
-        message.setText("""
+        message.setText(
+                """
                 Hola %s,
 
                 Recibimos una solicitud para restablecer tu contraseña. Usa este enlace:
@@ -34,12 +36,18 @@ public class MailNotificationSender implements NotificationSender {
                 %s?token=%s
 
                 El enlace vence en %d minutos. Si no lo solicitaste, ignora este correo.
-                """.formatted(nombreUsuario, properties.getResetPasswordUrl(), token, minutosVigencia));
+                """
+                        .formatted(
+                                nombreUsuario,
+                                properties.getResetPasswordUrl(),
+                                token,
+                                minutosVigencia));
 
         try {
             mailSender.send(message);
         } catch (MailException e) {
-            throw new NotificationNotSentException("No se pudo enviar el correo de reset de password", e);
+            throw new NotificationNotSentException(
+                    "No se pudo enviar el correo de reset de password", e);
         }
     }
 }

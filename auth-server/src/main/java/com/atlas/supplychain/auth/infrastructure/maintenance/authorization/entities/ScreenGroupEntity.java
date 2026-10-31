@@ -6,16 +6,17 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.io.Serializable;
-
-/** Carpeta plegable dentro de un módulo puntual (Spec 1.4). Columna plana {@code id_module}, sin
- * {@code @ManyToOne} -- mismo criterio que {@code ModuleEntity.idBusinessProcess}. */
+/**
+ * Carpeta plegable dentro de un módulo puntual (Spec 1.4). Columna plana {@code id_module}, sin
+ * {@code @ManyToOne} -- mismo criterio que {@code ModuleEntity.idBusinessProcess}.
+ */
 @Entity
 @Table(name = "screen_group", schema = "auth")
 @Getter

@@ -1,8 +1,7 @@
 package com.atlas.supplychain.auth.infrastructure.common.messaging;
 
-import tools.jackson.databind.JsonNode;
-
 import java.time.Instant;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Envelope común de eventos de la plataforma (ADR-003). Mismo formato para todos los servicios,
@@ -18,6 +17,4 @@ public record EventEnvelope(
         String correlationId,
         String causationId,
         String producer,
-        JsonNode payload
-) {
-}
+        JsonNode payload) {}

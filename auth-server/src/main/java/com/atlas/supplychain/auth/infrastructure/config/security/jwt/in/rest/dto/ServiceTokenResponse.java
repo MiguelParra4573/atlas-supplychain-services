@@ -2,5 +2,4 @@ package com.atlas.supplychain.auth.infrastructure.config.security.jwt.in.rest.dt
 
 import java.time.Instant;
 
-public record ServiceTokenResponse(String token, Instant expiresAt) {
-}
+public record ServiceTokenResponse(String token, Instant expiresAt) {}

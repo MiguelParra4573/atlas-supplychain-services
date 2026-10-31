@@ -11,9 +11,7 @@ public interface RefreshSessionManager {
 
     long refreshTtlSeconds();
 
-    record IssueResult(String rawToken) {
-    }
+    record IssueResult(String rawToken) {}
 
-    record RotateResult(String rawToken, String idUser, String idCompany) {
-    }
+    record RotateResult(String rawToken, String idUser, String idCompany) {}
 }

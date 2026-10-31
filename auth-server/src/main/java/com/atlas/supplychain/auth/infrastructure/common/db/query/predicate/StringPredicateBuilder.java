@@ -4,10 +4,10 @@ import com.atlas.supplychain.auth.domain.shared.query.FilterCriterion;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.core.types.dsl.StringPath;
-import org.springframework.stereotype.Component;
-
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import org.springframework.stereotype.Component;
 
 @Component
 public class StringPredicateBuilder implements PredicateBuilder {
@@ -24,28 +24,25 @@ public class StringPredicateBuilder implements PredicateBuilder {
         List<String> values = splitValues(fc.value());
 
         return switch (operator) {
-            case "="     -> path.eq(first(values));
-            case "!="    -> path.ne(first(values));
-            case "like"  -> path.containsIgnoreCase(first(values));
+            case "=" -> path.eq(first(values));
+            case "!=" -> path.ne(first(values));
+            case "like" -> path.containsIgnoreCase(first(values));
             case "start" -> path.startsWithIgnoreCase(first(values));
-            case "end"   -> path.endsWithIgnoreCase(first(values));
-            case "in"    -> path.in(values);
+            case "end" -> path.endsWithIgnoreCase(first(values));
+            case "in" -> path.in(values);
             case "not in" -> path.notIn(values);
-            default -> throw new IllegalArgumentException(
-                    "Operador no soportado para tipo String: %s".formatted(fc.operator())
-            );
+            default ->
+                    throw new IllegalArgumentException(
+                            "Operador no soportado para tipo String: %s".formatted(fc.operator()));
         };
     }
 
     private String normalizeOperator(String op) {
-        return op.trim().toLowerCase();
+        return op.trim().toLowerCase(Locale.ROOT);
     }
 
     private List<String> splitValues(String raw) {
-        return Arrays.stream(raw.split(","))
-                .map(String::trim)
-                .filter(v -> !v.isEmpty())
-                .toList();
+        return Arrays.stream(raw.split(",")).map(String::trim).filter(v -> !v.isEmpty()).toList();
     }
 
     private String first(List<String> values) {

@@ -1,5 +1,8 @@
 package com.atlas.supplychain.auth.infrastructure.maintenance.authorization.in.rest.auth;
 
+import com.atlas.supplychain.auth.application.security.AuthenticationService;
+import com.atlas.supplychain.auth.application.security.PasswordResetService;
+import com.atlas.supplychain.auth.application.security.PasswordService;
 import com.atlas.supplychain.auth.application.security.dto.ChangePasswordRequest;
 import com.atlas.supplychain.auth.application.security.dto.ChangePasswordResponse;
 import com.atlas.supplychain.auth.application.security.dto.ForgotPasswordRequest;
@@ -10,9 +13,6 @@ import com.atlas.supplychain.auth.application.security.dto.LogoutRequest;
 import com.atlas.supplychain.auth.application.security.dto.RefreshRequest;
 import com.atlas.supplychain.auth.application.security.dto.ResetPasswordRequest;
 import com.atlas.supplychain.auth.application.security.dto.TokenResponse;
-import com.atlas.supplychain.auth.application.security.AuthenticationService;
-import com.atlas.supplychain.auth.application.security.PasswordResetService;
-import com.atlas.supplychain.auth.application.security.PasswordService;
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
 import com.atlas.supplychain.auth.infrastructure.config.security.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -51,10 +51,12 @@ public class AuthController {
     @PostMapping("/change-password")
     public ChangePasswordResponse changePassword(
             @AuthenticationPrincipal CustomUserDetails user,
-            @Valid @RequestBody ChangePasswordRequest req) throws EntityNotFoundException {
+            @Valid @RequestBody ChangePasswordRequest req)
+            throws EntityNotFoundException {
         if (user == null) throw new BadCredentialsException("No autenticado");
         passwordService.changeMyPassword(user.getUsername(), user.getIdCompany(), req);
-        return new ChangePasswordResponse(true, "Contraseña actualizada. Se cerraron las demás sesiones.");
+        return new ChangePasswordResponse(
+                true, "Contraseña actualizada. Se cerraron las demás sesiones.");
     }
 
     @PostMapping("/password/forgot")
@@ -63,9 +65,8 @@ public class AuthController {
     }
 
     @PostMapping("/password/reset")
-    public GenericMessageResponse reset(@Valid @RequestBody ResetPasswordRequest req) throws EntityNotFoundException {
+    public GenericMessageResponse reset(@Valid @RequestBody ResetPasswordRequest req)
+            throws EntityNotFoundException {
         return passwordResetService.reset(req);
     }
-
-
 }

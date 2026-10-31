@@ -21,5 +21,4 @@ public class JwtAccessTokenGenerator implements AccessTokenGenerator {
     public long ttlSeconds() {
         return jwtService.accessTokenTtlSeconds();
     }
-
 }

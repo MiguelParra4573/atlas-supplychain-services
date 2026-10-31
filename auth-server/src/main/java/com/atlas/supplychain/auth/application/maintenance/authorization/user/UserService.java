@@ -5,7 +5,6 @@ import com.atlas.supplychain.auth.domain.maintenance.authorization.model.User;
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
 import com.atlas.supplychain.auth.domain.shared.query.FilterCriterion;
-
 import java.util.List;
 
 public interface UserService {
@@ -20,5 +19,6 @@ public interface UserService {
 
     List<User> listarUsuariosPorEmpresa(String idCompany);
 
-    PagedResult<User> buscarUsuariosPaginados(List<FilterCriterion> filters, PageQuery pageQuery, String idCompany);
+    PagedResult<User> buscarUsuariosPaginados(
+            List<FilterCriterion> filters, PageQuery pageQuery, String idCompany);
 }

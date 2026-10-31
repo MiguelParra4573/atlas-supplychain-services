@@ -10,5 +10,4 @@ public interface PasswordResetTokenMapper {
     PasswordResetToken entityToDomain(PasswordResetTokenEntity entity);
 
     PasswordResetTokenEntity domainToEntity(PasswordResetToken domain);
-
 }

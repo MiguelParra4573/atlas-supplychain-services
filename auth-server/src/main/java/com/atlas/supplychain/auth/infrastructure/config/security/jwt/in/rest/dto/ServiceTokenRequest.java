@@ -2,5 +2,4 @@ package com.atlas.supplychain.auth.infrastructure.config.security.jwt.in.rest.dt
 
 import jakarta.validation.constraints.NotBlank;
 
-public record ServiceTokenRequest(@NotBlank String serviceName) {
-}
+public record ServiceTokenRequest(@NotBlank String serviceName) {}

@@ -1,9 +1,9 @@
 package com.atlas.supplychain.auth.application.security;
 
+import com.atlas.supplychain.auth.application.security.contracts.NotificationSender;
 import com.atlas.supplychain.auth.application.security.contracts.PasswordHasher;
 import com.atlas.supplychain.auth.application.security.contracts.PasswordHistoryStore;
 import com.atlas.supplychain.auth.application.security.contracts.PasswordPolicy;
-import com.atlas.supplychain.auth.application.security.contracts.NotificationSender;
 import com.atlas.supplychain.auth.application.security.contracts.PasswordResetTokenStore;
 import com.atlas.supplychain.auth.application.security.contracts.RefreshSessionManager;
 import com.atlas.supplychain.auth.application.security.contracts.UserStore;
@@ -16,13 +16,12 @@ import com.atlas.supplychain.auth.domain.common.exceptions.BusinessRuleException
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
 import com.atlas.supplychain.auth.domain.common.exceptions.ServiceException;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.User;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -41,14 +40,20 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     @Override
     public ForgotPasswordResponse forgot(ForgotPasswordRequest req) {
 
-        String genericMsg = "Si el usuario existe, se enviaron instrucciones para restablecer la contraseña.";
+        String genericMsg =
+                "Si el usuario existe, se enviaron instrucciones para restablecer la contraseña.";
 
         // Resolución por username (credencial real que el usuario conoce), no por idUser.
         // username es único global: el filtro de empresa se aplica como post-filtro sobre el
         // resultado ya obtenido, y un mismatch de idCompany se trata igual que "no encontrado"
         // para no revelar que la cuenta existe en otro tenant.
-        var userOpt = userStore.findWithAuthoritiesByUsername(req.usuario())
-                .filter(u -> req.idCompany() != null && req.idCompany().equals(u.getIdCompany()));
+        var userOpt =
+                userStore
+                        .findWithAuthoritiesByUsername(req.usuario())
+                        .filter(
+                                u ->
+                                        req.idCompany() != null
+                                                && req.idCompany().equals(u.getIdCompany()));
         if (userOpt.isEmpty()) {
             return new ForgotPasswordResponse(genericMsg);
         }
@@ -70,8 +75,12 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             tokenStore.invalidateAllActive(user.getIdUser(), user.getIdCompany(), Instant.now());
         }
 
-        log.info("reset-password solicitado: usuario={} empresa={} expira={} enviado={}",
-                user.getIdUser(), user.getIdCompany(), now.plus(resetTtl), enviado);
+        log.info(
+                "reset-password solicitado: usuario={} empresa={} expira={} enviado={}",
+                user.getIdUser(),
+                user.getIdCompany(),
+                now.plus(resetTtl),
+                enviado);
 
         return new ForgotPasswordResponse(genericMsg);
     }
@@ -82,11 +91,16 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         }
 
         try {
-            notificationSender.enviarResetPassword(user.getEmail(), user.getIdUser(), rawToken, resetTtl.toMinutes());
+            notificationSender.enviarResetPassword(
+                    user.getEmail(), user.getIdUser(), rawToken, resetTtl.toMinutes());
             return true;
         } catch (RuntimeException e) {
-            log.error("No se pudo enviar la notification de reset de password para usuario={} empresa={}",
-                    user.getIdUser(), user.getIdCompany(), e);
+            log.error(
+                    "No se pudo enviar la notification de reset de password para usuario={}"
+                            + " empresa={}",
+                    user.getIdUser(),
+                    user.getIdCompany(),
+                    e);
             return false;
         }
     }
@@ -97,8 +111,13 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         String hash = sha256(req.resetToken());
         Instant now = Instant.now();
 
-        var token = tokenStore.findByHash(hash)
-                .orElseThrow(() -> new BusinessRuleException(BusinessRuleCode.TOKEN_RESET_INVALIDO));
+        var token =
+                tokenStore
+                        .findByHash(hash)
+                        .orElseThrow(
+                                () ->
+                                        new BusinessRuleException(
+                                                BusinessRuleCode.TOKEN_RESET_INVALIDO));
 
         if (!token.isValid(now)) {
             throw new BusinessRuleException(BusinessRuleCode.TOKEN_RESET_EXPIRADO);
@@ -110,9 +129,9 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
         User user = userStore.findByIdUser(token.idUser());
         passwordPolicy.validateOrThrow(req.newPassword());
-        var recent = passwordHistoryStore.findRecentHashes(
-                user.getIdUser(), user.getIdCompany(), passwordPolicy.historyCount()
-        );
+        var recent =
+                passwordHistoryStore.findRecentHashes(
+                        user.getIdUser(), user.getIdCompany(), passwordPolicy.historyCount());
 
         for (String oldHash : recent) {
             if (passwordHasher.matches(req.newPassword(), oldHash)) {
@@ -144,7 +163,8 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     private String sha256(String value) {
         try {
             var md = java.security.MessageDigest.getInstance("SHA-256");
-            return java.util.HexFormat.of().formatHex(md.digest(value.getBytes()));
+            return java.util.HexFormat.of()
+                    .formatHex(md.digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
         } catch (Exception e) {
             throw new ServiceException("No se pudo procesar el token", e);
         }

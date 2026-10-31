@@ -9,7 +9,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -25,29 +24,24 @@ public class UserDTO {
     // listarUsuarios...).
     private String username;
 
-    @NotBlank(groups = {Crear.class, Actualizar.class})
-    @Size(max = 100)
-    private String name;
+    @NotBlank(groups = {Crear.class, Actualizar.class}) @Size(max = 100) private String name;
 
-    @NotBlank(groups = {Crear.class, Actualizar.class})
-    @Size(max = 100)
-    private String lastName;
+    @NotBlank(groups = {Crear.class, Actualizar.class}) @Size(max = 100) private String lastName;
 
-    @Email(groups = {Crear.class, Actualizar.class})
-    @NotBlank(groups = {Crear.class})
-    @Size(max = 150)
-    private String email;
+    @Email(groups = {Crear.class, Actualizar.class}) @NotBlank(groups = {Crear.class}) @Size(max = 150) private String email;
 
-    @NotBlank(groups = {Crear.class})
-    @Size(min = 6, groups = {Crear.class})
+    @NotBlank(groups = {Crear.class}) @Size(
+            min = 6,
+            groups = {Crear.class})
     private String password;
 
-    @NotNull(groups = {Crear.class, Actualizar.class})
+    // sin @NotNull: en un primitivo "boolean" la validacion es siempre trivialmente
+    // cierta -- nunca puede ser null. Error Prone (NullablePrimitive) lo marca.
     private boolean state;
 
-    @NotNull(groups = {Crear.class, Actualizar.class})
-    private Long idRole;
+    @NotNull(groups = {Crear.class, Actualizar.class}) private Long idRole;
 
     public interface Crear {}
+
     public interface Actualizar {}
 }

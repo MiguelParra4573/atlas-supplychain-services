@@ -25,39 +25,45 @@ public class AuthenticationService {
     public TokenResponse login(LoginRequest request) {
         var user = authenticator.authenticate(request.getUsuario(), request.getContrasena());
 
-        String access = accessTokenGenerator.generate(
-                new AccessTokenClaims(user.idUser(), user.idCompany(), user.roles(), user.authorities()));
+        String access =
+                accessTokenGenerator.generate(
+                        new AccessTokenClaims(
+                                user.idUser(), user.idCompany(), user.roles(), user.authorities()));
         var refresh = refreshSessionManager.issueForLogin(user.idUser(), user.idCompany());
 
-        TokenResponse response = TokenResponse.builder()
-                .tokenType("Bearer")
-                .accessToken(access)
-                .expiresIn(accessTokenGenerator.ttlSeconds())
-                .refreshToken(refresh.rawToken())
-                .refreshExpiresIn(refreshSessionManager.refreshTtlSeconds())
-                .user(TokenResponse.UserInfo.builder()
-                        .usuario(user.username())
-                        .name(user.name())
-                        .lastName(user.lastName())
-                        .idCompany(user.idCompany())
-                        .roles(user.roles())
-                        .authorities(user.authorities())
-                        .build())
-                .build();
+        TokenResponse response =
+                TokenResponse.builder()
+                        .tokenType("Bearer")
+                        .accessToken(access)
+                        .expiresIn(accessTokenGenerator.ttlSeconds())
+                        .refreshToken(refresh.rawToken())
+                        .refreshExpiresIn(refreshSessionManager.refreshTtlSeconds())
+                        .user(
+                                TokenResponse.UserInfo.builder()
+                                        .usuario(user.username())
+                                        .name(user.name())
+                                        .lastName(user.lastName())
+                                        .idCompany(user.idCompany())
+                                        .roles(user.roles())
+                                        .authorities(user.authorities())
+                                        .build())
+                        .build();
 
-        String rolPrincipal = user.roles() != null && !user.roles().isEmpty() ? user.roles().get(0) : null;
-        auditTrail.registrar(new AuditEventCommand(
-                "LOGIN",
-                "LOGIN_EXITOSO",
-                "USUARIO",
-                user.idUser(),
-                "SEGURIDAD",
-                "LOW",
-                user.idCompany(),
-                user.idUser(),
-                user.idUser(),
-                rolPrincipal,
-                "Inicio de sesión exitoso"));
+        String rolPrincipal =
+                user.roles() != null && !user.roles().isEmpty() ? user.roles().get(0) : null;
+        auditTrail.registrar(
+                new AuditEventCommand(
+                        "LOGIN",
+                        "LOGIN_EXITOSO",
+                        "USUARIO",
+                        user.idUser(),
+                        "SEGURIDAD",
+                        "LOW",
+                        user.idCompany(),
+                        user.idUser(),
+                        user.idUser(),
+                        rolPrincipal,
+                        "Inicio de sesión exitoso"));
 
         return response;
     }
@@ -70,8 +76,10 @@ public class AuthenticationService {
             throw new IllegalArgumentException("Refresh token inválido para el tenant");
         }
 
-        String access = accessTokenGenerator.generate(
-                new AccessTokenClaims(user.idUser(), user.idCompany(), user.roles(), user.authorities()));
+        String access =
+                accessTokenGenerator.generate(
+                        new AccessTokenClaims(
+                                user.idUser(), user.idCompany(), user.roles(), user.authorities()));
 
         return TokenResponse.builder()
                 .tokenType("Bearer")
@@ -79,14 +87,15 @@ public class AuthenticationService {
                 .expiresIn(accessTokenGenerator.ttlSeconds())
                 .refreshToken(rotated.rawToken())
                 .refreshExpiresIn(refreshSessionManager.refreshTtlSeconds())
-                .user(TokenResponse.UserInfo.builder()
-                        .usuario(user.username())
-                        .name(user.name())
-                        .lastName(user.lastName())
-                        .idCompany(user.idCompany())
-                        .roles(user.roles())
-                        .authorities(user.authorities())
-                        .build())
+                .user(
+                        TokenResponse.UserInfo.builder()
+                                .usuario(user.username())
+                                .name(user.name())
+                                .lastName(user.lastName())
+                                .idCompany(user.idCompany())
+                                .roles(user.roles())
+                                .authorities(user.authorities())
+                                .build())
                 .build();
     }
 

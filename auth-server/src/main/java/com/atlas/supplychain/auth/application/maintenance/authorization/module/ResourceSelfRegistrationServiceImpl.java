@@ -5,28 +5,27 @@ import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Operati
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.OperationRepository;
 import com.atlas.supplychain.auth.domain.maintenance.organization.model.Company;
 import com.atlas.supplychain.auth.domain.maintenance.organization.repositories.CompanyRepository;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Decisión de tenant (Diseño §1, "Decisión de tenant"): {@code auth-server} tiene acceso directo a
- * {@code auth.company} en su propia base -- a diferencia de {@code BackfillRunner} en
- * {@code ms-reporte} (Spec 4.4), que necesita una lista de tenants por configuración porque no
- * tiene esa tabla -- así que acá se itera {@link CompanyRepository#listarCompaniesPorState} en
- * vez de introducir un mecanismo de descubrimiento externo. Solo empresas activas ({@code
- * state=true}): una empresa dada de baja no necesita ver operaciones nuevas.
+ * {@code auth.company} en su propia base -- a diferencia de {@code BackfillRunner} en {@code
+ * ms-reporte} (Spec 4.4), que necesita una lista de tenants por configuración porque no tiene esa
+ * tabla -- así que acá se itera {@link CompanyRepository#listarCompaniesPorState} en vez de
+ * introducir un mecanismo de descubrimiento externo. Solo empresas activas ({@code state=true}):
+ * una empresa dada de baja no necesita ver operaciones nuevas.
  *
  * <p>Idempotencia: por empresa, upsert de cada operación por {@code (idCompany, resource, tag)} --
  * respaldado por {@code uk_operations_company_resource_tag} (changelog 025). Correr el mismo
  * registro dos veces no duplica nada, solo refresca {@code path}/{@code httpMethod}/{@code
- * permitAll}/{@code state}.</p>
+ * permitAll}/{@code state}.
  *
  * <p>Lo que este servicio ya <b>no</b> hace (Spec 1.2): crear o actualizar un {@code Module}. La
  * operación recién registrada no cuelga de ningún módulo, así que no aparece en el menú de nadie
  * hasta que un administrador de la empresa la asigne. Es deliberado -- el sistema no adivina cómo
- * agrupa sus pantallas cada empresa -- y no le quita autoridad: una operación concedida autoriza
- * su endpoint aunque no esté en el menú.</p>
+ * agrupa sus pantallas cada empresa -- y no le quita autoridad: una operación concedida autoriza su
+ * endpoint aunque no esté en el menú.
  */
 @RequiredArgsConstructor
 public class ResourceSelfRegistrationServiceImpl implements ResourceSelfRegistrationService {
@@ -35,7 +34,8 @@ public class ResourceSelfRegistrationServiceImpl implements ResourceSelfRegistra
     private final CompanyRepository companyRepository;
 
     @Override
-    public void registrarOperacionesEnTodasLasEmpresas(String resource, List<Operation> operations) {
+    public void registrarOperacionesEnTodasLasEmpresas(
+            String resource, List<Operation> operations) {
         if (operations == null || operations.isEmpty()) {
             return;
         }
@@ -49,7 +49,8 @@ public class ResourceSelfRegistrationServiceImpl implements ResourceSelfRegistra
     }
 
     private void upsertOperacion(String idCompany, String resource, Operation template) {
-        operationRepository.buscarPorRecursoYTag(idCompany, resource, template.getTag())
+        operationRepository
+                .buscarPorRecursoYTag(idCompany, resource, template.getTag())
                 .ifPresentOrElse(
                         existente -> actualizarOperacionExistente(existente, template),
                         () -> crearOperacionNueva(idCompany, resource, template));
@@ -69,15 +70,16 @@ public class ResourceSelfRegistrationServiceImpl implements ResourceSelfRegistra
     }
 
     private void crearOperacionNueva(String idCompany, String resource, Operation template) {
-        Operation nueva = Operation.builder()
-                .idCompany(idCompany)
-                .resource(resource)
-                .tag(template.getTag())
-                .path(template.getPath())
-                .httpMethod(template.getHttpMethod())
-                .permitAll(template.isPermitAll())
-                .state(true)
-                .build();
+        Operation nueva =
+                Operation.builder()
+                        .idCompany(idCompany)
+                        .resource(resource)
+                        .tag(template.getTag())
+                        .path(template.getPath())
+                        .httpMethod(template.getHttpMethod())
+                        .permitAll(template.isPermitAll())
+                        .state(true)
+                        .build();
         operationRepository.crearOperacion(nueva);
     }
 }

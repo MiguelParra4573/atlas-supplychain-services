@@ -1,12 +1,11 @@
 package com.atlas.supplychain.auth.application.security.dto;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.Builder;
-
-import java.util.List;
 
 @Getter
 @Setter
@@ -34,5 +33,4 @@ public class TokenResponse {
         private List<String> roles;
         private List<String> authorities;
     }
-
 }

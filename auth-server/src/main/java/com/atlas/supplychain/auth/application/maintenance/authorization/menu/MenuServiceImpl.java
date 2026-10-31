@@ -15,12 +15,11 @@ import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.ModuleOperationRepository;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.ProcessStageRepository;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.ScreenGroupRepository;
-import lombok.RequiredArgsConstructor;
-
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Orden del menú (Spec 1.3): proceso -&gt; {@code Module.displayOrder} -&gt; orden de pantalla. Un
@@ -30,7 +29,7 @@ import java.util.Map;
  * <p>Agrupación del rail (Spec 1.4): eje aparte del orden -- {@code idMenuCategory} (dueño la
  * empresa) dice bajo qué botón cae cada módulo, {@code idScreenGroup} dice qué pantallas de un
  * módulo van en una carpeta plegable. Ninguno de los dos cambia el orden que arma este servicio,
- * solo viajan como dato plano para que el shell decida cómo agrupar/plegar.</p>
+ * solo viajan como dato plano para que el shell decida cómo agrupar/plegar.
  */
 @RequiredArgsConstructor
 public class MenuServiceImpl implements MenuService {
@@ -50,20 +49,36 @@ public class MenuServiceImpl implements MenuService {
         List<BusinessProcess> procesos = businessProcessRepository.listar();
         Map<Long, Integer> ordenDeProceso = ordenDeProcesos(procesos);
         Map<Long, String> nombreDeProceso = nombreDeProcesos(procesos);
-        Map<Long, Integer> secuenciaPorEtapa = processStageRepository.listar().stream()
-                .collect(java.util.stream.Collectors.toMap(
-                        ProcessStage::getIdProcessStage, ProcessStage::getSequence));
-        Map<Long, String> nombreDeCategoria = menuCategoryRepository.listarPorState(idCompany, true).stream()
-                .collect(java.util.stream.Collectors.toMap(MenuCategory::getIdMenuCategory, MenuCategory::getName));
+        Map<Long, Integer> secuenciaPorEtapa =
+                processStageRepository.listar().stream()
+                        .collect(
+                                java.util.stream.Collectors.toMap(
+                                        ProcessStage::getIdProcessStage,
+                                        ProcessStage::getSequence));
+        Map<Long, String> nombreDeCategoria =
+                menuCategoryRepository.listarPorState(idCompany, true).stream()
+                        .collect(
+                                java.util.stream.Collectors.toMap(
+                                        MenuCategory::getIdMenuCategory, MenuCategory::getName));
 
         return permisosPorModulo.entrySet().stream()
-                .sorted(Comparator
-                        .<Map.Entry<Module, List<GrantedPermission>>>comparingInt(
-                                entry -> ordenDeProceso.getOrDefault(entry.getKey().getIdBusinessProcess(), Integer.MAX_VALUE))
-                        .thenComparingInt(entry -> ordenDeModulo(entry.getKey()))
-                        .thenComparing(entry -> entry.getKey().getName()))
-                .map(entry -> aModuloView(idCompany, entry.getKey(), entry.getValue(), secuenciaPorEtapa,
-                        nombreDeProceso, nombreDeCategoria))
+                .sorted(
+                        Comparator.<Map.Entry<Module, List<GrantedPermission>>>comparingInt(
+                                        entry ->
+                                                ordenDeProceso.getOrDefault(
+                                                        entry.getKey().getIdBusinessProcess(),
+                                                        Integer.MAX_VALUE))
+                                .thenComparingInt(entry -> ordenDeModulo(entry.getKey()))
+                                .thenComparing(entry -> entry.getKey().getName()))
+                .map(
+                        entry ->
+                                aModuloView(
+                                        idCompany,
+                                        entry.getKey(),
+                                        entry.getValue(),
+                                        secuenciaPorEtapa,
+                                        nombreDeProceso,
+                                        nombreDeCategoria))
                 .toList();
     }
 
@@ -73,10 +88,8 @@ public class MenuServiceImpl implements MenuService {
      * final vía {@code getOrDefault(..., MAX_VALUE)} en el llamador.
      */
     private static Map<Long, Integer> ordenDeProcesos(List<BusinessProcess> procesos) {
-        List<Long> idsOrdenados = procesos.stream()
-                .map(BusinessProcess::getIdBusinessProcess)
-                .sorted()
-                .toList();
+        List<Long> idsOrdenados =
+                procesos.stream().map(BusinessProcess::getIdBusinessProcess).sorted().toList();
 
         Map<Long, Integer> orden = new HashMap<>();
         for (int i = 0; i < idsOrdenados.size(); i++) {
@@ -95,41 +108,72 @@ public class MenuServiceImpl implements MenuService {
         return module.getDisplayOrder() == null ? 0 : module.getDisplayOrder();
     }
 
-    private MenuModuloView aModuloView(String idCompany, Module module, List<GrantedPermission> permisos,
-                                        Map<Long, Integer> secuenciaPorEtapa, Map<Long, String> nombreDeProceso,
-                                        Map<Long, String> nombreDeCategoria) {
+    private MenuModuloView aModuloView(
+            String idCompany,
+            Module module,
+            List<GrantedPermission> permisos,
+            Map<Long, Integer> secuenciaPorEtapa,
+            Map<Long, String> nombreDeProceso,
+            Map<Long, String> nombreDeCategoria) {
         Map<Long, Integer> overridesDelModulo =
                 moduleOperationRepository.displayOrdersDeModulo(idCompany, module.getIdModule());
 
         // Carpetas (Spec 1.4): `idOperation -> idScreenGroup` de este módulo + el nombre de cada
         // carpeta -- 2 consultas en bloque por módulo (mismo nivel que `overridesDelModulo`, no
         // una por operación).
-        Map<Long, Long> carpetaPorOperacion = moduleOperationRepository.screenGroupsDeModulo(idCompany, module.getIdModule());
-        Map<Long, String> nombreDeCarpeta = screenGroupRepository.listarPorModulo(idCompany, module.getIdModule()).stream()
-                .collect(java.util.stream.Collectors.toMap(ScreenGroup::getIdScreenGroup, ScreenGroup::getName));
+        Map<Long, Long> carpetaPorOperacion =
+                moduleOperationRepository.screenGroupsDeModulo(idCompany, module.getIdModule());
+        Map<Long, String> nombreDeCarpeta =
+                screenGroupRepository.listarPorModulo(idCompany, module.getIdModule()).stream()
+                        .collect(
+                                java.util.stream.Collectors.toMap(
+                                        ScreenGroup::getIdScreenGroup, ScreenGroup::getName));
 
-        List<MenuOperacionView> operaciones = permisos.stream()
-                .map(GrantedPermission::getOperation)
-                .sorted(Comparator
-                        .<Operation>comparingInt(operation -> ordenDePantalla(operation, overridesDelModulo, secuenciaPorEtapa))
-                        .thenComparing(Operation::getTag))
-                .map(operation -> aOperacionView(operation, carpetaPorOperacion, nombreDeCarpeta))
-                .toList();
+        List<MenuOperacionView> operaciones =
+                permisos.stream()
+                        .map(GrantedPermission::getOperation)
+                        .sorted(
+                                Comparator.<Operation>comparingInt(
+                                                operation ->
+                                                        ordenDePantalla(
+                                                                operation,
+                                                                overridesDelModulo,
+                                                                secuenciaPorEtapa))
+                                        .thenComparing(Operation::getTag))
+                        .map(
+                                operation ->
+                                        aOperacionView(
+                                                operation, carpetaPorOperacion, nombreDeCarpeta))
+                        .toList();
 
-        String businessProcessName = module.getIdBusinessProcess() == null
-                ? null : nombreDeProceso.get(module.getIdBusinessProcess());
-        String menuCategoryName = module.getIdMenuCategory() == null
-                ? null : nombreDeCategoria.get(module.getIdMenuCategory());
+        String businessProcessName =
+                module.getIdBusinessProcess() == null
+                        ? null
+                        : nombreDeProceso.get(module.getIdBusinessProcess());
+        String menuCategoryName =
+                module.getIdMenuCategory() == null
+                        ? null
+                        : nombreDeCategoria.get(module.getIdMenuCategory());
 
-        return new MenuModuloView(module.getIdModule(), module.getName(), module.getIcon(),
-                module.getIdBusinessProcess(), businessProcessName, module.getIdMenuCategory(), menuCategoryName,
+        return new MenuModuloView(
+                module.getIdModule(),
+                module.getName(),
+                module.getIcon(),
+                module.getIdBusinessProcess(),
+                businessProcessName,
+                module.getIdMenuCategory(),
+                menuCategoryName,
                 operaciones);
     }
 
-    /** El override de la empresa manda; si no hay, la secuencia de la etapa; si no tiene etapa, al
-     * final -- empatado por {@code tag} entre las 5 operaciones de la misma pantalla. */
-    private static int ordenDePantalla(Operation operation, Map<Long, Integer> overrides,
-                                        Map<Long, Integer> secuenciaPorEtapa) {
+    /**
+     * El override de la empresa manda; si no hay, la secuencia de la etapa; si no tiene etapa, al
+     * final -- empatado por {@code tag} entre las 5 operaciones de la misma pantalla.
+     */
+    private static int ordenDePantalla(
+            Operation operation,
+            Map<Long, Integer> overrides,
+            Map<Long, Integer> secuenciaPorEtapa) {
         Integer override = overrides.get(operation.getIdOperation());
         if (override != null) {
             return override;
@@ -143,13 +187,22 @@ public class MenuServiceImpl implements MenuService {
         return Integer.MAX_VALUE;
     }
 
-    private static MenuOperacionView aOperacionView(Operation operation, Map<Long, Long> carpetaPorOperacion,
-                                                      Map<Long, String> nombreDeCarpeta) {
+    private static MenuOperacionView aOperacionView(
+            Operation operation,
+            Map<Long, Long> carpetaPorOperacion,
+            Map<Long, String> nombreDeCarpeta) {
         Long idScreenGroup = carpetaPorOperacion.get(operation.getIdOperation());
         String screenGroupName = idScreenGroup == null ? null : nombreDeCarpeta.get(idScreenGroup);
 
-        return new MenuOperacionView(operation.getIdOperation(), operation.getResource(), operation.getTag(),
-                operation.getName(), operation.getIcon(), idScreenGroup, screenGroupName,
-                operation.getPath(), operation.getHttpMethod());
+        return new MenuOperacionView(
+                operation.getIdOperation(),
+                operation.getResource(),
+                operation.getTag(),
+                operation.getName(),
+                operation.getIcon(),
+                idScreenGroup,
+                screenGroupName,
+                operation.getPath(),
+                operation.getHttpMethod());
     }
 }

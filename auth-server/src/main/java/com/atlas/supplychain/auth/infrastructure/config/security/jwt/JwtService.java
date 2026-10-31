@@ -6,9 +6,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyFactory;
@@ -20,6 +17,8 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -40,10 +39,11 @@ public class JwtService {
     }
 
     private RSAPrivateKey loadPrivateKey(String path) throws Exception {
-        String key = Files.readString(Path.of(path))
-                .replace("-----BEGIN PRIVATE KEY-----", "")
-                .replace("-----END PRIVATE KEY-----", "")
-                .replaceAll("\\s+", "");
+        String key =
+                Files.readString(Path.of(path))
+                        .replace("-----BEGIN PRIVATE KEY-----", "")
+                        .replace("-----END PRIVATE KEY-----", "")
+                        .replaceAll("\\s+", "");
 
         byte[] decoded = Base64.getDecoder().decode(key);
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(decoded);
@@ -52,17 +52,17 @@ public class JwtService {
     }
 
     private RSAPublicKey loadPublicKey(String path) throws Exception {
-        String key = Files.readString(Path.of(path))
-                .replace("-----BEGIN PUBLIC KEY-----", "")
-                .replace("-----END PUBLIC KEY-----", "")
-                .replaceAll("\\s+", "");
+        String key =
+                Files.readString(Path.of(path))
+                        .replace("-----BEGIN PUBLIC KEY-----", "")
+                        .replace("-----END PUBLIC KEY-----", "")
+                        .replaceAll("\\s+", "");
 
         byte[] decoded = Base64.getDecoder().decode(key);
         X509EncodedKeySpec spec = new X509EncodedKeySpec(decoded);
         KeyFactory kf = KeyFactory.getInstance("RSA");
         return (RSAPublicKey) kf.generatePublic(spec);
     }
-
 
     public long accessTokenTtlSeconds() {
         return jwtProperties.getAccessTokenTtlMinutes() * 60L;
@@ -71,7 +71,9 @@ public class JwtService {
     public String generarAccessToken(AccessTokenClaims claims) {
         Instant ahora = Instant.now();
         return Jwts.builder()
-                .header().keyId(jwtProperties.getKeyId()).and()
+                .header()
+                .keyId(jwtProperties.getKeyId())
+                .and()
                 .subject(claims.username())
                 .claim("idCompany", claims.idCompany())
                 .claim("roles", claims.roles())
@@ -83,7 +85,11 @@ public class JwtService {
                 .claim("perms", claims.authorities())
                 .issuer(jwtProperties.getIssuer())
                 .issuedAt(Date.from(ahora))
-                .expiration(Date.from(ahora.plus(jwtProperties.getAccessTokenTtlMinutes(), ChronoUnit.MINUTES)))
+                .expiration(
+                        Date.from(
+                                ahora.plus(
+                                        jwtProperties.getAccessTokenTtlMinutes(),
+                                        ChronoUnit.MINUTES)))
                 .signWith(privateKey, Jwts.SIG.RS256)
                 .compact();
     }
@@ -97,10 +103,6 @@ public class JwtService {
     }
 
     public Claims validarToken(String token) throws JwtException {
-        return Jwts.parser()
-                .verifyWith(publicKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        return Jwts.parser().verifyWith(publicKey).build().parseSignedClaims(token).getPayload();
     }
 }

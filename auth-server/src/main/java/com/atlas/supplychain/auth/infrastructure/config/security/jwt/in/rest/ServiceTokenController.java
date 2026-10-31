@@ -7,6 +7,9 @@ import com.atlas.supplychain.auth.infrastructure.config.security.jwt.ServiceToke
 import com.atlas.supplychain.auth.infrastructure.config.security.jwt.in.rest.dto.ServiceTokenRequest;
 import com.atlas.supplychain.auth.infrastructure.config.security.jwt.in.rest.dto.ServiceTokenResponse;
 import jakarta.validation.Valid;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,17 +17,14 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.time.Instant;
-
 /**
  * Emite un JWT de servicio-a-servicio ({@code typ: "service"}) para un servicio que todavía no
- * tiene manera de autenticarse con JWT (Spec 6.1 §Diseño-3 -- caso de origen: {@code ms-agent-runtime}
- * pidiéndole un token para llamar a {@code ms-ai-gateway}). No puede exigir JWT de entrada -- es
- * precisamente lo que el llamador no tiene todavía -- por eso queda {@code permitAll()} en
- * {@link com.atlas.supplychain.auth.infrastructure.config.security.SecurityConfig} y la autenticación
- * real la hace este controller a mano contra {@code X-Service-Secret}, en tiempo constante.
+ * tiene manera de autenticarse con JWT (Spec 6.1 §Diseño-3 -- caso de origen: {@code
+ * ms-agent-runtime} pidiéndole un token para llamar a {@code ms-ai-gateway}). No puede exigir JWT
+ * de entrada -- es precisamente lo que el llamador no tiene todavía -- por eso queda {@code
+ * permitAll()} en {@link com.atlas.supplychain.auth.infrastructure.config.security.SecurityConfig}
+ * y la autenticación real la hace este controller a mano contra {@code X-Service-Secret}, en tiempo
+ * constante.
  */
 @RestController
 @RequestMapping("/service-tokens")
@@ -50,7 +50,8 @@ public class ServiceTokenController {
 
     private void validarSecreto(String serviceName, String secretRecibido) {
         String secretEsperado = serviceSecretsProperties.getServiceSecrets().get(serviceName);
-        if (secretEsperado == null || secretEsperado.isBlank()
+        if (secretEsperado == null
+                || secretEsperado.isBlank()
                 || secretRecibido == null
                 || !MessageDigest.isEqual(
                         secretEsperado.getBytes(StandardCharsets.UTF_8),

@@ -1,31 +1,29 @@
 package com.atlas.supplychain.auth.infrastructure.maintenance.authorization.out.db;
 
+import static com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.QModuleEntity.moduleEntity;
+
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Module;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.ModuleRepository;
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
 import com.atlas.supplychain.auth.domain.shared.query.FilterCriterion;
-import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.ModuleEntity;
 import com.atlas.supplychain.auth.infrastructure.common.db.AbstractQueryDslRepository;
 import com.atlas.supplychain.auth.infrastructure.common.db.query.predicate.PredicateBuilderRegistry;
+import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.ModuleEntity;
 import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.out.mappers.ModuleMapper;
 import jakarta.persistence.EntityManager;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-
-import static com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entities.QModuleEntity.moduleEntity;
-
 @Repository
 @Transactional
 @Slf4j
-public class ModuleRepositoryImpl
-        extends AbstractQueryDslRepository<ModuleEntity, Long>
+public class ModuleRepositoryImpl extends AbstractQueryDslRepository<ModuleEntity, Long>
         implements ModuleRepository {
 
     private final ModuleMapper mapper;
@@ -33,8 +31,7 @@ public class ModuleRepositoryImpl
     public ModuleRepositoryImpl(
             EntityManager entityManager,
             PredicateBuilderRegistry predicateRegistry,
-            ModuleMapper mapper
-    ) {
+            ModuleMapper mapper) {
         super(ModuleEntity.class, entityManager, predicateRegistry);
         this.mapper = mapper;
     }
@@ -53,25 +50,33 @@ public class ModuleRepositoryImpl
      */
     @Override
     public void actualizarModulo(Module module) throws EntityNotFoundException {
-        ModuleEntity existente = findByIdAndCompany(module.getIdCompany(), module.getIdModule())
-                .orElseThrow(() -> new EntityNotFoundException("Módulo no encontrado ID " + module.getIdModule()));
+        ModuleEntity existente =
+                findByIdAndCompany(module.getIdCompany(), module.getIdModule())
+                        .orElseThrow(
+                                () ->
+                                        new EntityNotFoundException(
+                                                "Módulo no encontrado ID " + module.getIdModule()));
         mapper.update(module, existente);
         this.save(existente);
     }
 
     @Override
-    public Module obtenerModuloPorId(String idCompany, Long idModule) throws EntityNotFoundException {
+    public Module obtenerModuloPorId(String idCompany, Long idModule)
+            throws EntityNotFoundException {
         return findByIdAndCompany(idCompany, idModule)
                 .map(mapper::entityToDomain)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Módulo no encontrado ID " + idModule)
-                );
+                .orElseThrow(
+                        () -> new EntityNotFoundException("Módulo no encontrado ID " + idModule));
     }
 
     @Override
     public void eliminarModulo(String idCompany, Long idModule) throws EntityNotFoundException {
-        ModuleEntity entity = findByIdAndCompany(idCompany, idModule)
-                .orElseThrow(() -> new EntityNotFoundException("Módulo no encontrado ID " + idModule));
+        ModuleEntity entity =
+                findByIdAndCompany(idCompany, idModule)
+                        .orElseThrow(
+                                () ->
+                                        new EntityNotFoundException(
+                                                "Módulo no encontrado ID " + idModule));
         this.delete(entity);
     }
 
@@ -79,22 +84,25 @@ public class ModuleRepositoryImpl
     public List<Module> listarModulosPorState(String idCompany, Boolean state) {
         requireCompany(idCompany);
 
-        List<ModuleEntity> list = getQueryFactory()
-                .selectFrom(moduleEntity)
-                .where(moduleEntity.idCompany.eq(idCompany)
-                        .and(moduleEntity.state.eq(state)))
-                .fetch();
+        List<ModuleEntity> list =
+                getQueryFactory()
+                        .selectFrom(moduleEntity)
+                        .where(
+                                moduleEntity
+                                        .idCompany
+                                        .eq(idCompany)
+                                        .and(moduleEntity.state.eq(state)))
+                        .fetch();
 
         return list.stream().map(mapper::entityToDomain).toList();
     }
 
     @Override
     public PagedResult<Module> listarModulosPaginados(
-            String idCompany,
-            List<FilterCriterion> filters,
-            PageQuery pageQuery) {
+            String idCompany, List<FilterCriterion> filters, PageQuery pageQuery) {
 
-        Page<ModuleEntity> result = filterAndSortPaged(filters, pageQuery.sorts(), toPageable(pageQuery), idCompany);
+        Page<ModuleEntity> result =
+                filterAndSortPaged(filters, pageQuery.sorts(), toPageable(pageQuery), idCompany);
 
         return toPagedResult(result.map(mapper::entityToDomain));
     }
@@ -104,10 +112,14 @@ public class ModuleRepositoryImpl
         requireCompany(idCompany);
 
         return Optional.ofNullable(
-                getQueryFactory()
-                        .selectFrom(moduleEntity)
-                        .where(moduleEntity.idCompany.eq(idCompany).and(moduleEntity.name.eq(name)))
-                        .fetchOne()
-        ).map(mapper::entityToDomain);
+                        getQueryFactory()
+                                .selectFrom(moduleEntity)
+                                .where(
+                                        moduleEntity
+                                                .idCompany
+                                                .eq(idCompany)
+                                                .and(moduleEntity.name.eq(name)))
+                                .fetchOne())
+                .map(mapper::entityToDomain);
     }
 }

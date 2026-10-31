@@ -1,11 +1,11 @@
 package com.atlas.supplychain.auth.application.security.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -13,6 +13,5 @@ import lombok.Builder;
 @AllArgsConstructor
 @Builder
 public class RefreshRequest {
-    @NotBlank
-    private String refreshToken;
+    @NotBlank private String refreshToken;
 }

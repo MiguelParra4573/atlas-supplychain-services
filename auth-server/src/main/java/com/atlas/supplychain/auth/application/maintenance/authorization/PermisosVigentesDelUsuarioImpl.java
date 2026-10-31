@@ -4,12 +4,11 @@ import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Granted
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Module;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.User;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.UserRepository;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class PermisosVigentesDelUsuarioImpl implements PermisosVigentesDelUsuario {
@@ -34,7 +33,8 @@ public class PermisosVigentesDelUsuarioImpl implements PermisosVigentesDelUsuari
     // modules con fetchJoin: única consulta, reutilizada por cualquier consumidor de este
     // colaborador (GrantedPermissionServiceImpl y MenuServiceImpl, Spec 1.18).
     private Optional<User> usuarioDeLaEmpresa(String idUser, String idCompany) {
-        return userRepository.findByIdUsuarioWithAuthorities(idUser)
+        return userRepository
+                .findByIdUsuarioWithAuthorities(idUser)
                 .filter(user -> idCompany.equals(user.getIdCompany()));
     }
 }

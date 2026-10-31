@@ -12,9 +12,8 @@ import com.atlas.supplychain.auth.domain.common.exceptions.BusinessRuleCode;
 import com.atlas.supplychain.auth.domain.common.exceptions.BusinessRuleException;
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.User;
-import lombok.RequiredArgsConstructor;
-
 import java.time.Instant;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class PasswordServiceImpl implements PasswordService {
@@ -37,7 +36,9 @@ public class PasswordServiceImpl implements PasswordService {
         }
 
         passwordPolicy.validateOrThrow(req.newPassword());
-        var recent = passwordHistoryStore.findRecentHashes(idUser, companyId, passwordPolicy.historyCount());
+        var recent =
+                passwordHistoryStore.findRecentHashes(
+                        idUser, companyId, passwordPolicy.historyCount());
         for (String oldHash : recent) {
             if (passwordHasher.matches(req.newPassword(), oldHash)) {
                 throw new BusinessRuleException(BusinessRuleCode.PASSWORD_REUTILIZADA);
@@ -54,19 +55,19 @@ public class PasswordServiceImpl implements PasswordService {
 
         userStore.save(user);
 
-        auditTrail.registrar(new AuditEventCommand(
-                "UPDATE",
-                "CAMBIO_PASSWORD",
-                "USUARIO",
-                idUser,
-                "SEGURIDAD",
-                "MEDIUM",
-                companyId,
-                idUser,
-                idUser,
-                null,
-                "Cambio de contraseña propio"
-        ));
+        auditTrail.registrar(
+                new AuditEventCommand(
+                        "UPDATE",
+                        "CAMBIO_PASSWORD",
+                        "USUARIO",
+                        idUser,
+                        "SEGURIDAD",
+                        "MEDIUM",
+                        companyId,
+                        idUser,
+                        idUser,
+                        null,
+                        "Cambio de contraseña propio"));
 
         refreshSessionManager.revokeAllSessions(idUser, companyId);
     }

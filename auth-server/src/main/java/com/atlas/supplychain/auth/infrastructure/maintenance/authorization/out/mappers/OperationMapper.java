@@ -5,7 +5,9 @@ import com.atlas.supplychain.auth.infrastructure.maintenance.authorization.entit
 import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authorization.OperationDTO;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring", uses = { ModuleMapper.class })
+@Mapper(
+        componentModel = "spring",
+        uses = {ModuleMapper.class})
 public interface OperationMapper {
 
     // OJO: este método también lo usa GrantedPermissionMapper (vía `uses`, desambiguado con
@@ -18,11 +20,11 @@ public interface OperationMapper {
     Operation entityToDomain(OperationEntity entity);
 
     /**
-     * Variante para listados masivos (search paginado, `listarPorRecurso`, etc.): ignora
-     * {@code modules} a propósito. Es {@code @ManyToMany(LAZY)} sin {@code @BatchSize}/
+     * Variante para listados masivos (search paginado, `listarPorRecurso`, etc.): ignora {@code
+     * modules} a propósito. Es {@code @ManyToMany(LAZY)} sin {@code @BatchSize}/
      * {@code @EntityGraph} -- mapearlo en {@link #entityToDomain} dispara una query extra **por
-     * fila** (N+1 confirmado). Quien necesite la asignación completa la pide explícito
-     * ({@code GET /operations/{id}/modules}, o la proyección de pantallas del buscador nuevo).
+     * fila** (N+1 confirmado). Quien necesite la asignación completa la pide explícito ({@code GET
+     * /operations/{id}/modules}, o la proyección de pantallas del buscador nuevo).
      */
     @Mapping(target = "modules", ignore = true)
     Operation entityToDomainParaListado(OperationEntity entity);

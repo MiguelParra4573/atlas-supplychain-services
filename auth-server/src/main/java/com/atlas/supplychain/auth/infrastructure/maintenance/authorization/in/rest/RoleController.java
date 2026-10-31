@@ -11,6 +11,7 @@ import com.atlas.supplychain.auth.shared.infrastructure.dto.SearchRequestDto;
 import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authorization.RoleDTO;
 import com.atlas.supplychain.auth.shared.infrastructure.dto.maintenance.authorization.RoleMenuSummaryDTO;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +19,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/roles")
@@ -33,8 +32,7 @@ public class RoleController {
     @PostMapping
     @PreAuthorize("hasAuthority('ROLES:CREAR')")
     public ResponseEntity<Void> crearRol(
-            @Validated({RoleDTO.Crear.class})
-            @RequestBody RoleDTO dto,
+            @Validated({RoleDTO.Crear.class}) @RequestBody RoleDTO dto,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
         Role role = mapper.dtoToDomain(dto, principal.getIdCompany());
@@ -45,9 +43,9 @@ public class RoleController {
     @PatchMapping
     @PreAuthorize("hasAuthority('ROLES:EDITAR')")
     public ResponseEntity<Void> actualizarRol(
-            @Validated({RoleDTO.Actualizar.class})
-            @RequestBody RoleDTO dto,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @Validated({RoleDTO.Actualizar.class}) @RequestBody RoleDTO dto,
+            @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
         Role role = mapper.dtoToDomain(dto, principal.getIdCompany());
         service.actualizarRol(role);
@@ -57,8 +55,8 @@ public class RoleController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLES:CONSULTAR')")
     public ResponseEntity<RoleDTO> obtenerRolPorId(
-            @NotNull @PathVariable Long id,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @NotNull @PathVariable Long id, @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
         Role role = service.obtenerRolPorId(principal.getIdCompany(), id);
         return ResponseEntity.ok(mapper.domainToDto(role));
@@ -67,8 +65,8 @@ public class RoleController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLES:ELIMINAR')")
     public ResponseEntity<Void> eliminarRol(
-            @NotNull @PathVariable Long id,
-            @AuthenticationPrincipal CustomUserDetails principal) throws EntityNotFoundException {
+            @NotNull @PathVariable Long id, @AuthenticationPrincipal CustomUserDetails principal)
+            throws EntityNotFoundException {
 
         service.eliminarRol(principal.getIdCompany(), id);
         return ResponseEntity.ok().build();
@@ -79,10 +77,10 @@ public class RoleController {
     public ResponseEntity<List<RoleDTO>> listarRolesDeMiEmpresa(
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        List<RoleDTO> roles = service.listarRolesPorCompany(principal.getIdCompany())
-                .stream()
-                .map(mapper::domainToDto)
-                .toList();
+        List<RoleDTO> roles =
+                service.listarRolesPorCompany(principal.getIdCompany()).stream()
+                        .map(mapper::domainToDto)
+                        .toList();
 
         return ResponseEntity.ok(roles);
     }
@@ -97,19 +95,32 @@ public class RoleController {
     public ResponseEntity<List<RoleMenuSummaryDTO>> resumenDeMenuPorRol(
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        List<RoleMenuSummaryDTO> resumen = service.resumenDeMenuPorRol(principal.getIdCompany())
-                .stream()
-                .map(vista -> RoleMenuSummaryDTO.builder()
-                        .idRole(vista.idRole())
-                        .modules(vista.modules().stream()
-                                .map(modulo -> RoleMenuSummaryDTO.RoleMenuModuleDTO.builder()
-                                        .idModule(modulo.idModule())
-                                        .name(modulo.name())
-                                        .screenCount(modulo.screenCount())
-                                        .build())
-                                .toList())
-                        .build())
-                .toList();
+        List<RoleMenuSummaryDTO> resumen =
+                service.resumenDeMenuPorRol(principal.getIdCompany()).stream()
+                        .map(
+                                vista ->
+                                        RoleMenuSummaryDTO.builder()
+                                                .idRole(vista.idRole())
+                                                .modules(
+                                                        vista.modules().stream()
+                                                                .map(
+                                                                        modulo ->
+                                                                                RoleMenuSummaryDTO
+                                                                                        .RoleMenuModuleDTO
+                                                                                        .builder()
+                                                                                        .idModule(
+                                                                                                modulo
+                                                                                                        .idModule())
+                                                                                        .name(
+                                                                                                modulo
+                                                                                                        .name())
+                                                                                        .screenCount(
+                                                                                                modulo
+                                                                                                        .screenCount())
+                                                                                        .build())
+                                                                .toList())
+                                                .build())
+                        .toList();
 
         return ResponseEntity.ok(resumen);
     }
@@ -118,11 +129,14 @@ public class RoleController {
     @PreAuthorize("hasAuthority('ROLES:LISTAR')")
     public PagedResult<RoleDTO> listarRolesPaginados(
             PageRequestDto pageRequest,
-            @RequestBody() SearchRequestDto searchRequest,
+            @RequestBody SearchRequestDto searchRequest,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
-        PagedResult<Role> result = service.listarRolesPaginados(
-                principal.getIdCompany(), searchRequest.getFilters(), pageRequest.toPageQuery(searchRequest.getSorts()));
+        PagedResult<Role> result =
+                service.listarRolesPaginados(
+                        principal.getIdCompany(),
+                        searchRequest.getFilters(),
+                        pageRequest.toPageQuery(searchRequest.getSorts()));
         List<RoleDTO> content = result.content().stream().map(mapper::domainToDto).toList();
         return new PagedResult<>(content, result.page(), result.size(), result.totalElements());
     }

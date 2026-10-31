@@ -5,19 +5,18 @@ import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundExcepti
 import com.atlas.supplychain.auth.domain.common.exceptions.ExistingDependenciesException;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Module;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Operation;
-import com.atlas.supplychain.auth.domain.maintenance.authorization.screen.ModuleScreenOrder;
-import com.atlas.supplychain.auth.domain.maintenance.authorization.screen.ScreenSummary;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.GrantedPermissionRepository;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.ModuleOperationRepository;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.ModuleRepository;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.OperationRepository;
+import com.atlas.supplychain.auth.domain.maintenance.authorization.screen.ModuleScreenOrder;
+import com.atlas.supplychain.auth.domain.maintenance.authorization.screen.ScreenSummary;
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
 import com.atlas.supplychain.auth.domain.shared.query.FilterCriterion;
-import lombok.RequiredArgsConstructor;
-
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class OperationServiceImpl implements OperationService {
@@ -34,9 +33,11 @@ public class OperationServiceImpl implements OperationService {
      */
     @Override
     public void crearOperacion(Operation operation) {
-        if (repository.existsByResourceAndTag(operation.getIdCompany(), operation.getResource(), operation.getTag())) {
+        if (repository.existsByResourceAndTag(
+                operation.getIdCompany(), operation.getResource(), operation.getTag())) {
             throw new DuplicateRecordException(
-                    "Ya existe la operación '%s:%s' en esta empresa".formatted(operation.getResource(), operation.getTag()));
+                    "Ya existe la operación '%s:%s' en esta empresa"
+                            .formatted(operation.getResource(), operation.getTag()));
         }
         repository.crearOperacion(operation);
     }
@@ -47,10 +48,12 @@ public class OperationServiceImpl implements OperationService {
     }
 
     @Override
-    public void eliminarOperacion(String idCompany, Long idOperation) throws EntityNotFoundException {
+    public void eliminarOperacion(String idCompany, Long idOperation)
+            throws EntityNotFoundException {
         if (grantedPermissionRepository.existsByOperation(idCompany, idOperation)) {
             throw new ExistingDependenciesException(
-                    "No se puede eliminar la operación ID %d: tiene permisos concedidos asociados".formatted(idOperation));
+                    "No se puede eliminar la operación ID %d: tiene permisos concedidos asociados"
+                            .formatted(idOperation));
         }
         // Estar en un menú no es una dependencia que deba bloquear la baja: se sueltan las
         // asignaciones y el módulo simplemente deja de mostrarla.
@@ -59,7 +62,8 @@ public class OperationServiceImpl implements OperationService {
     }
 
     @Override
-    public Operation obtenerOperacionPorId(String idCompany, Long idOperation) throws EntityNotFoundException {
+    public Operation obtenerOperacionPorId(String idCompany, Long idOperation)
+            throws EntityNotFoundException {
         return repository.obtenerOperacionPorId(idCompany, idOperation);
     }
 
@@ -74,12 +78,14 @@ public class OperationServiceImpl implements OperationService {
     }
 
     @Override
-    public PagedResult<Operation> listarOperacionesPaginadas(String idCompany, List<FilterCriterion> filters, PageQuery pageQuery) {
+    public PagedResult<Operation> listarOperacionesPaginadas(
+            String idCompany, List<FilterCriterion> filters, PageQuery pageQuery) {
         return repository.listarOperacionesPaginadas(idCompany, filters, pageQuery);
     }
 
     @Override
-    public void asignarAModulo(String idCompany, Long idOperation, Long idModule) throws EntityNotFoundException {
+    public void asignarAModulo(String idCompany, Long idOperation, Long idModule)
+            throws EntityNotFoundException {
         // Ambos lados se resuelven contra la empresa del principal antes de tocar la tabla puente:
         // sin esto se podría asignar una operación de otra empresa a un módulo propio.
         repository.obtenerOperacionPorId(idCompany, idOperation);
@@ -89,7 +95,8 @@ public class OperationServiceImpl implements OperationService {
     }
 
     @Override
-    public void desasignarDeModulo(String idCompany, Long idOperation, Long idModule) throws EntityNotFoundException {
+    public void desasignarDeModulo(String idCompany, Long idOperation, Long idModule)
+            throws EntityNotFoundException {
         repository.obtenerOperacionPorId(idCompany, idOperation);
         moduleRepository.obtenerModuloPorId(idCompany, idModule);
 
@@ -97,7 +104,8 @@ public class OperationServiceImpl implements OperationService {
     }
 
     @Override
-    public List<Module> listarModulosDeOperacion(String idCompany, Long idOperation) throws EntityNotFoundException {
+    public List<Module> listarModulosDeOperacion(String idCompany, Long idOperation)
+            throws EntityNotFoundException {
         repository.obtenerOperacionPorId(idCompany, idOperation);
         return moduleOperationRepository.listarModulosDeOperacion(idCompany, idOperation);
     }
@@ -108,7 +116,8 @@ public class OperationServiceImpl implements OperationService {
      * módulo. Idempotente por operación, vía {@code moduleOperationRepository.asignar}.
      */
     @Override
-    public void asignarRecursoAModulo(String idCompany, String resource, Long idModule) throws EntityNotFoundException {
+    public void asignarRecursoAModulo(String idCompany, String resource, Long idModule)
+            throws EntityNotFoundException {
         moduleRepository.obtenerModuloPorId(idCompany, idModule);
 
         for (Operation operation : repository.listarPorRecurso(idCompany, resource)) {
@@ -117,7 +126,8 @@ public class OperationServiceImpl implements OperationService {
     }
 
     @Override
-    public void desasignarRecursoDeModulo(String idCompany, String resource, Long idModule) throws EntityNotFoundException {
+    public void desasignarRecursoDeModulo(String idCompany, String resource, Long idModule)
+            throws EntityNotFoundException {
         moduleRepository.obtenerModuloPorId(idCompany, idModule);
 
         for (Operation operation : repository.listarPorRecurso(idCompany, resource)) {
@@ -126,22 +136,25 @@ public class OperationServiceImpl implements OperationService {
     }
 
     @Override
-    public void reordenarPantallasDeModulo(String idCompany, Long idModule, Map<String, Integer> displayOrderPorRecurso)
+    public void reordenarPantallasDeModulo(
+            String idCompany, Long idModule, Map<String, Integer> displayOrderPorRecurso)
             throws EntityNotFoundException {
         moduleRepository.obtenerModuloPorId(idCompany, idModule);
         moduleOperationRepository.reordenarPantallas(idCompany, idModule, displayOrderPorRecurso);
     }
 
     @Override
-    public void asignarCarpetaARecurso(String idCompany, String resource, Long idModule, Long idScreenGroup)
+    public void asignarCarpetaARecurso(
+            String idCompany, String resource, Long idModule, Long idScreenGroup)
             throws EntityNotFoundException {
         moduleRepository.obtenerModuloPorId(idCompany, idModule);
-        moduleOperationRepository.asignarCarpetaARecurso(idCompany, idModule, resource, idScreenGroup);
+        moduleOperationRepository.asignarCarpetaARecurso(
+                idCompany, idModule, resource, idScreenGroup);
     }
 
     @Override
-    public PagedResult<ScreenSummary> buscarPantallas(String idCompany, String resourceLike, boolean onlyUnassigned,
-                                                        PageQuery pageQuery) {
+    public PagedResult<ScreenSummary> buscarPantallas(
+            String idCompany, String resourceLike, boolean onlyUnassigned, PageQuery pageQuery) {
         return repository.buscarPantallas(idCompany, resourceLike, onlyUnassigned, pageQuery);
     }
 
@@ -152,12 +165,15 @@ public class OperationServiceImpl implements OperationService {
      * no nula.
      */
     @Override
-    public List<ModuleScreenOrder> pantallasDeModulo(String idCompany, Long idModule) throws EntityNotFoundException {
+    public List<ModuleScreenOrder> pantallasDeModulo(String idCompany, Long idModule)
+            throws EntityNotFoundException {
         moduleRepository.obtenerModuloPorId(idCompany, idModule);
 
         List<Operation> operaciones = repository.listarOperacionesPorModulo(idCompany, idModule);
-        Map<Long, Integer> overrides = moduleOperationRepository.displayOrdersDeModulo(idCompany, idModule);
-        Map<Long, Long> carpetas = moduleOperationRepository.screenGroupsDeModulo(idCompany, idModule);
+        Map<Long, Integer> overrides =
+                moduleOperationRepository.displayOrdersDeModulo(idCompany, idModule);
+        Map<Long, Long> carpetas =
+                moduleOperationRepository.screenGroupsDeModulo(idCompany, idModule);
 
         // `Map.merge` exige un valor no-nulo -- una pantalla recién asignada, sin orden/carpeta
         // todavía, tiene `override`/`idScreenGroup` `null` (caso normal, no un error) y `merge` la
@@ -183,10 +199,19 @@ public class OperationServiceImpl implements OperationService {
         }
 
         return ordenPorRecurso.entrySet().stream()
-                .sorted(java.util.Comparator
-                        .<Map.Entry<String, Integer>>comparingInt(e -> e.getValue() == null ? Integer.MAX_VALUE : e.getValue())
-                        .thenComparing(Map.Entry::getKey))
-                .map(e -> new ModuleScreenOrder(e.getKey(), e.getValue(), carpetaPorRecurso.get(e.getKey())))
+                .sorted(
+                        java.util.Comparator.<Map.Entry<String, Integer>>comparingInt(
+                                        e ->
+                                                e.getValue() == null
+                                                        ? Integer.MAX_VALUE
+                                                        : e.getValue())
+                                .thenComparing(Map.Entry::getKey))
+                .map(
+                        e ->
+                                new ModuleScreenOrder(
+                                        e.getKey(),
+                                        e.getValue(),
+                                        carpetaPorRecurso.get(e.getKey())))
                 .toList();
     }
 }

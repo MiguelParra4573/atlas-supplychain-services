@@ -17,9 +17,9 @@ public class SpringSecurityAuthenticator implements Authenticator, UserIdentityP
 
     @Override
     public AuthenticatedUser authenticate(String username, String password) {
-        var auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password)
-        );
+        var auth =
+                authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(username, password));
 
         Object principal = auth.getPrincipal();
         if (!(principal instanceof CustomUserDetails user)) {
@@ -33,8 +33,7 @@ public class SpringSecurityAuthenticator implements Authenticator, UserIdentityP
                 user.getLastName(),
                 user.getIdCompany(),
                 user.getRoleNames(),
-                user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()
-        );
+                user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
     }
 
     @Override
@@ -50,7 +49,6 @@ public class SpringSecurityAuthenticator implements Authenticator, UserIdentityP
                 user.getLastName(),
                 user.getIdCompany(),
                 user.getRoleNames(),
-                user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()
-        );
+                user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
     }
 }
