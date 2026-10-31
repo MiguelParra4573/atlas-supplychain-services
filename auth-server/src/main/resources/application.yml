@@ -12,7 +12,7 @@ spring:
       enabled: true
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/atlas}
+    url: ${DB_URL:jdbc:postgresql://localhost:15100/atlas}
     username: ${DB_USERNAME:auth_user}
     password: ${DB_PASSWORD:auth_pass}
     hikari:
@@ -40,13 +40,13 @@ spring:
 
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
-    port: ${RABBITMQ_PORT:5672}
+    port: ${RABBITMQ_PORT:15110}
     username: ${RABBITMQ_USERNAME:atlas}
     password: ${RABBITMQ_PASSWORD:atlas}
 
   mail:
     host: ${MAIL_HOST:localhost}
-    port: ${MAIL_PORT:1025}
+    port: ${MAIL_PORT:15140}
 
 outbox:
   poll-interval-ms: 5000
@@ -74,13 +74,13 @@ atlas:
   openapi:
     public-access: ${OPENAPI_PUBLIC:true}
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:15173}
   messaging:
     events-exchange: auth.events
     producer: auth-server
   mail:
     from: no-reply@atlas-supplychain.local
-    reset-password-url: ${RESET_PASSWORD_URL:http://localhost:5173/reset-password}
+    reset-password-url: ${RESET_PASSWORD_URL:http://localhost:15173/reset-password}
   password-policy:
     min-length: 10
     require-upper: true
