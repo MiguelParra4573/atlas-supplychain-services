@@ -1,17 +1,16 @@
 package com.atlas.supplychain.auth.infrastructure.config.security.jwt;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
+
 import com.atlas.supplychain.auth.application.security.contracts.AccessTokenClaims;
 import com.atlas.supplychain.auth.infrastructure.config.security.JwtProperties;
 import io.jsonwebtoken.Claims;
+import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import java.time.Instant;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.within;
 
 class JwtServiceTest {
 

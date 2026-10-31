@@ -1,5 +1,17 @@
 package com.atlas.supplychain.auth.application.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
@@ -17,6 +29,10 @@ import com.atlas.supplychain.auth.domain.common.exceptions.BusinessRuleCode;
 import com.atlas.supplychain.auth.domain.common.exceptions.BusinessRuleException;
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.User;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,40 +42,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class PasswordResetServiceImplTest {
 
-    @Mock
-    private UserStore userStore;
-    @Mock
-    private PasswordResetTokenStore tokenStore;
-    @Mock
-    private PasswordHasher passwordHasher;
-    @Mock
-    private PasswordPolicy passwordPolicy;
-    @Mock
-    private PasswordHistoryStore passwordHistoryStore;
-    @Mock
-    private RefreshSessionManager refreshSessionManager;
-    @Mock
-    private NotificationSender notificationSender;
+    @Mock private UserStore userStore;
+    @Mock private PasswordResetTokenStore tokenStore;
+    @Mock private PasswordHasher passwordHasher;
+    @Mock private PasswordPolicy passwordPolicy;
+    @Mock private PasswordHistoryStore passwordHistoryStore;
+    @Mock private RefreshSessionManager refreshSessionManager;
+    @Mock private NotificationSender notificationSender;
 
     private ListAppender<ILoggingEvent> logAppender;
     private Logger serviceLogger;
@@ -70,9 +62,13 @@ class PasswordResetServiceImplTest {
         logAppender = new ListAppender<>();
         logAppender.start();
         serviceLogger.addAppender(logAppender);
-        org.mockito.Mockito.lenient().when(passwordPolicy.resetTokenTtl()).thenReturn(Duration.ofMinutes(20));
+        org.mockito.Mockito.lenient()
+                .when(passwordPolicy.resetTokenTtl())
+                .thenReturn(Duration.ofMinutes(20));
         org.mockito.Mockito.lenient().when(passwordPolicy.historyCount()).thenReturn(5);
-        org.mockito.Mockito.lenient().when(passwordPolicy.passwordExpiration()).thenReturn(Duration.ofDays(90));
+        org.mockito.Mockito.lenient()
+                .when(passwordPolicy.passwordExpiration())
+                .thenReturn(Duration.ofDays(90));
     }
 
     @AfterEach
@@ -81,8 +77,14 @@ class PasswordResetServiceImplTest {
     }
 
     private PasswordResetServiceImpl service() {
-        return new PasswordResetServiceImpl(userStore, tokenStore, passwordHasher, passwordPolicy,
-                passwordHistoryStore, refreshSessionManager, notificationSender);
+        return new PasswordResetServiceImpl(
+                userStore,
+                tokenStore,
+                passwordHasher,
+                passwordPolicy,
+                passwordHistoryStore,
+                refreshSessionManager,
+                notificationSender);
     }
 
     @Test
@@ -108,7 +110,9 @@ class PasswordResetServiceImplTest {
         verify(tokenStore).save(eq("u1"), eq("c1"), hashGuardado.capture(), any());
 
         ArgumentCaptor<String> tokenEnviado = ArgumentCaptor.forClass(String.class);
-        verify(notificationSender).enviarResetPassword(eq("u1@atlas.test"), eq("u1"), tokenEnviado.capture(), eq(20L));
+        verify(notificationSender)
+                .enviarResetPassword(
+                        eq("u1@atlas.test"), eq("u1"), tokenEnviado.capture(), eq(20L));
 
         assertThat(sha256(tokenEnviado.getValue())).isEqualTo(hashGuardado.getValue());
     }
@@ -162,11 +166,13 @@ class PasswordResetServiceImplTest {
     }
 
     @Test
-    void forgotConNotificationSenderQueFallaSigueRespondiendo200EInvalidaElTokenSinPropagarLaExcepcion() {
+    void
+            forgotConNotificationSenderQueFallaSigueRespondiendo200EInvalidaElTokenSinPropagarLaExcepcion() {
         User user = User.builder().idUser("u1").idCompany("c1").email("u1@atlas.test").build();
         when(userStore.findWithAuthoritiesByUsername("u1")).thenReturn(Optional.of(user));
         doThrow(new RuntimeException("ms-notificacion caido"))
-                .when(notificationSender).enviarResetPassword(anyString(), anyString(), anyString(), eq(20L));
+                .when(notificationSender)
+                .enviarResetPassword(anyString(), anyString(), anyString(), eq(20L));
 
         var respuesta = service().forgot(new ForgotPasswordRequest("u1", "c1"));
 
@@ -181,7 +187,8 @@ class PasswordResetServiceImplTest {
         when(userStore.findWithAuthoritiesByUsername("u1")).thenReturn(Optional.of(conEmail));
         when(userStore.findWithAuthoritiesByUsername("u2")).thenReturn(Optional.of(sinEmail));
         doThrow(new RuntimeException("ms-notificacion caido"))
-                .when(notificationSender).enviarResetPassword(eq("u1@atlas.test"), anyString(), anyString(), eq(20L));
+                .when(notificationSender)
+                .enviarResetPassword(eq("u1@atlas.test"), anyString(), anyString(), eq(20L));
 
         service().forgot(new ForgotPasswordRequest("u1", "c1"));
         service().forgot(new ForgotPasswordRequest("u2", "c1"));
@@ -212,7 +219,8 @@ class PasswordResetServiceImplTest {
 
     @Test
     void resetLanzaTokenResetExpiradoSiElTokenYaNoEsValido() {
-        var tokenVencido = new ResetTokenData(1L, "u1", "c1", Instant.now().minusSeconds(10), false);
+        var tokenVencido =
+                new ResetTokenData(1L, "u1", "c1", Instant.now().minusSeconds(10), false);
         when(tokenStore.findByHash(anyString())).thenReturn(Optional.of(tokenVencido));
 
         var req = new ResetPasswordRequest("token-vencido", "Nueva#1234");
@@ -226,19 +234,24 @@ class PasswordResetServiceImplTest {
     @Test
     void tokenInexistenteYTokenExpiradoDevuelvenElMismoCodigoPublicoAunqueElCodigoInternoDifiere() {
         when(tokenStore.findByHash(anyString())).thenReturn(Optional.empty());
-        BusinessRuleException inexistente = capturarBusinessRuleException(
-                new ResetPasswordRequest("token-inexistente", "Nueva#1234"));
+        BusinessRuleException inexistente =
+                capturarBusinessRuleException(
+                        new ResetPasswordRequest("token-inexistente", "Nueva#1234"));
 
-        var tokenVencido = new ResetTokenData(1L, "u1", "c1", Instant.now().minusSeconds(10), false);
+        var tokenVencido =
+                new ResetTokenData(1L, "u1", "c1", Instant.now().minusSeconds(10), false);
         when(tokenStore.findByHash(anyString())).thenReturn(Optional.of(tokenVencido));
-        BusinessRuleException vencido = capturarBusinessRuleException(
-                new ResetPasswordRequest("token-vencido", "Nueva#1234"));
+        BusinessRuleException vencido =
+                capturarBusinessRuleException(
+                        new ResetPasswordRequest("token-vencido", "Nueva#1234"));
 
         // Códigos internos distintos (el log sí los distingue)...
         assertThat(inexistente.getCode()).isNotEqualTo(vencido.getCode());
         // ...pero el código público y el mensaje que ve el cliente colapsan a uno solo.
-        assertThat(inexistente.getCode().getPublicCode()).isEqualTo(vencido.getCode().getPublicCode());
-        assertThat(inexistente.getCode().getPublicMessage()).isEqualTo(vencido.getCode().getPublicMessage());
+        assertThat(inexistente.getCode().getPublicCode())
+                .isEqualTo(vencido.getCode().getPublicCode());
+        assertThat(inexistente.getCode().getPublicMessage())
+                .isEqualTo(vencido.getCode().getPublicMessage());
     }
 
     private BusinessRuleException capturarBusinessRuleException(ResetPasswordRequest req) {
@@ -267,14 +280,16 @@ class PasswordResetServiceImplTest {
     }
 
     @Test
-    void resetLanzaPasswordReutilizadaSiCoincideConHistorialReciente() throws EntityNotFoundException {
+    void resetLanzaPasswordReutilizadaSiCoincideConHistorialReciente()
+            throws EntityNotFoundException {
         var tokenValido = new ResetTokenData(1L, "u1", "c1", Instant.now().plusSeconds(600), false);
         when(tokenStore.findByHash(anyString())).thenReturn(Optional.of(tokenValido));
         when(tokenStore.markUsed(eq(1L), any())).thenReturn(true);
 
         User user = User.builder().idUser("u1").idCompany("c1").passwordHash("hash-actual").build();
         when(userStore.findByIdUser("u1")).thenReturn(user);
-        when(passwordHistoryStore.findRecentHashes("u1", "c1", 5)).thenReturn(List.of("hash-viejo"));
+        when(passwordHistoryStore.findRecentHashes("u1", "c1", 5))
+                .thenReturn(List.of("hash-viejo"));
         when(passwordHasher.matches("Nueva#1234", "hash-viejo")).thenReturn(true);
 
         var req = new ResetPasswordRequest("token-valido", "Nueva#1234");

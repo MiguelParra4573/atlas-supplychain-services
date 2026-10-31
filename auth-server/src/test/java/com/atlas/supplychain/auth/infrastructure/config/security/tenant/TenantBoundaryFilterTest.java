@@ -1,20 +1,18 @@
 package com.atlas.supplychain.auth.infrastructure.config.security.tenant;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
 import com.atlas.supplychain.auth.infrastructure.config.security.jwt.JwtService;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.junit.jupiter.api.Test;
-import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.test.util.ReflectionTestUtils;
-
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.security.web.access.AccessDeniedHandler;
 
 /**
  * Spec 1.19 SS4: TenantBoundaryFilter delega el 403 al AccessDeniedHandler ya wireado en
@@ -24,11 +22,14 @@ class TenantBoundaryFilterTest {
 
     private final JwtService jwtService = mock(JwtService.class);
     private final AccessDeniedHandler accessDeniedHandler = mock(AccessDeniedHandler.class);
-    private final TenantBoundaryFilter filter = new TenantBoundaryFilter(jwtService, accessDeniedHandler);
+
+    private TenantBoundaryFilter filter(String expectedIdCompany) {
+        return new TenantBoundaryFilter(jwtService, accessDeniedHandler, expectedIdCompany);
+    }
 
     @Test
     void propertyAusenteEsNoOp() throws Exception {
-        ReflectionTestUtils.setField(filter, "expectedIdCompany", "");
+        TenantBoundaryFilter filter = filter("");
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -42,7 +43,7 @@ class TenantBoundaryFilterTest {
 
     @Test
     void idCompanyDistintoDelegaAlAccessDeniedHandler() throws Exception {
-        ReflectionTestUtils.setField(filter, "expectedIdCompany", "99");
+        TenantBoundaryFilter filter = filter("99");
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -63,7 +64,7 @@ class TenantBoundaryFilterTest {
 
     @Test
     void idCompanyCoincideDejaPasar() throws Exception {
-        ReflectionTestUtils.setField(filter, "expectedIdCompany", "99");
+        TenantBoundaryFilter filter = filter("99");
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -83,7 +84,7 @@ class TenantBoundaryFilterTest {
 
     @Test
     void tokenInvalidoDejaPasarSinBloquear() throws Exception {
-        ReflectionTestUtils.setField(filter, "expectedIdCompany", "99");
+        TenantBoundaryFilter filter = filter("99");
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);

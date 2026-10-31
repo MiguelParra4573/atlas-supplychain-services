@@ -1,7 +1,13 @@
 package com.atlas.supplychain.auth.infrastructure.config.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
+import static org.mockito.Mockito.verify;
+
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.security.RefreshToken;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.security.RefreshTokenRepository;
+import java.time.Duration;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -10,19 +16,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Duration;
-import java.time.Instant;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.within;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-
 @ExtendWith(MockitoExtension.class)
 class RefreshTokenServiceTest {
 
-    @Mock
-    private RefreshTokenRepository repo;
+    @Mock private RefreshTokenRepository repo;
 
     private RefreshTokenService service(int refreshTokenTtlDays) {
         JwtProperties properties = new JwtProperties();

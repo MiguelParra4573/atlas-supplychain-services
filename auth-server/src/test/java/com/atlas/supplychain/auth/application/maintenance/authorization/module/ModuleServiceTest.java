@@ -1,19 +1,5 @@
 package com.atlas.supplychain.auth.application.maintenance.authorization.module;
 
-import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
-import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Module;
-import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.ModuleOperationRepository;
-import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.ModuleRepository;
-import com.atlas.supplychain.auth.domain.shared.PageQuery;
-import com.atlas.supplychain.auth.domain.shared.PagedResult;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
@@ -21,13 +7,24 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
+import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Module;
+import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.ModuleOperationRepository;
+import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.ModuleRepository;
+import com.atlas.supplychain.auth.domain.shared.PageQuery;
+import com.atlas.supplychain.auth.domain.shared.PagedResult;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 @ExtendWith(MockitoExtension.class)
 class ModuleServiceTest {
 
-    @Mock
-    private ModuleRepository repository;
-    @Mock
-    private ModuleOperationRepository moduleOperationRepository;
+    @Mock private ModuleRepository repository;
+    @Mock private ModuleOperationRepository moduleOperationRepository;
 
     private ModuleServiceImpl service() {
         return new ModuleServiceImpl(repository, moduleOperationRepository);
@@ -52,11 +49,13 @@ class ModuleServiceTest {
     }
 
     @Test
-    void actualizarModuloPropagaEntityNotFoundExceptionDelRepositorio() throws EntityNotFoundException {
+    void actualizarModuloPropagaEntityNotFoundExceptionDelRepositorio()
+            throws EntityNotFoundException {
         Module module = Module.builder().idCompany("c1").idModule(99L).name("USUARIOS").build();
         doThrow(new EntityNotFoundException("no existe")).when(repository).actualizarModulo(module);
 
-        assertThatThrownBy(() -> service().actualizarModulo(module)).isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> service().actualizarModulo(module))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 
     /**
@@ -77,10 +76,13 @@ class ModuleServiceTest {
     }
 
     @Test
-    void eliminarModuloPropagaEntityNotFoundExceptionSiElModuloNoExiste() throws EntityNotFoundException {
-        when(repository.obtenerModuloPorId("c1", 99L)).thenThrow(new EntityNotFoundException("no existe"));
+    void eliminarModuloPropagaEntityNotFoundExceptionSiElModuloNoExiste()
+            throws EntityNotFoundException {
+        when(repository.obtenerModuloPorId("c1", 99L))
+                .thenThrow(new EntityNotFoundException("no existe"));
 
-        assertThatThrownBy(() -> service().eliminarModulo("c1", 99L)).isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> service().eliminarModulo("c1", 99L))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
@@ -93,7 +95,8 @@ class ModuleServiceTest {
 
     @Test
     void listarModulosPorStateDelegaEnElRepositorio() {
-        Module module = Module.builder().idCompany("c1").idModule(1L).name("USUARIOS").state(true).build();
+        Module module =
+                Module.builder().idCompany("c1").idModule(1L).name("USUARIOS").state(true).build();
         when(repository.listarModulosPorState("c1", true)).thenReturn(List.of(module));
 
         assertThat(service().listarModulosPorState("c1", true)).containsExactly(module);
@@ -106,6 +109,7 @@ class ModuleServiceTest {
         PagedResult<Module> expected = new PagedResult<>(List.of(module), 0, 10, 1);
         when(repository.listarModulosPaginados("c1", List.of(), pageQuery)).thenReturn(expected);
 
-        assertThat(service().listarModulosPaginados("c1", List.of(), pageQuery)).isEqualTo(expected);
+        assertThat(service().listarModulosPaginados("c1", List.of(), pageQuery))
+                .isEqualTo(expected);
     }
 }

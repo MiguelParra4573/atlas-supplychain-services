@@ -1,19 +1,5 @@
 package com.atlas.supplychain.auth.application.maintenance.organization.agency;
 
-import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
-import com.atlas.supplychain.auth.domain.maintenance.organization.model.Agency;
-import com.atlas.supplychain.auth.domain.maintenance.organization.model.Company;
-import com.atlas.supplychain.auth.domain.maintenance.organization.repositories.AgencyRepository;
-import com.atlas.supplychain.auth.domain.maintenance.organization.repositories.CompanyRepository;
-import com.atlas.supplychain.auth.domain.shared.PageQuery;
-import com.atlas.supplychain.auth.domain.shared.PagedResult;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -21,26 +7,43 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
+import com.atlas.supplychain.auth.domain.maintenance.organization.model.Agency;
+import com.atlas.supplychain.auth.domain.maintenance.organization.model.Company;
+import com.atlas.supplychain.auth.domain.maintenance.organization.repositories.AgencyRepository;
+import com.atlas.supplychain.auth.domain.maintenance.organization.repositories.CompanyRepository;
+import com.atlas.supplychain.auth.domain.shared.PageQuery;
+import com.atlas.supplychain.auth.domain.shared.PagedResult;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 @ExtendWith(MockitoExtension.class)
 class AgencyServiceTest {
 
-    @Mock
-    private AgencyRepository repository;
-    @Mock
-    private CompanyRepository companyRepository;
+    @Mock private AgencyRepository repository;
+    @Mock private CompanyRepository companyRepository;
 
     private AgencyServiceImpl service() {
         return new AgencyServiceImpl(repository, companyRepository);
     }
 
     private Agency agency() {
-        return Agency.builder().idAgency("a1").idCompany("01").name("Agencia Centro").state(true).build();
+        return Agency.builder()
+                .idAgency("a1")
+                .idCompany("01")
+                .name("Agencia Centro")
+                .state(true)
+                .build();
     }
 
     @Test
     void crearAgencyCreaCuandoLaCompanyExiste() throws EntityNotFoundException {
         Agency agency = agency();
-        when(companyRepository.obtenerCompanyPorId("01")).thenReturn(Company.builder().idCompany("01").build());
+        when(companyRepository.obtenerCompanyPorId("01"))
+                .thenReturn(Company.builder().idCompany("01").build());
 
         service().crearAgency(agency);
 
@@ -49,13 +52,16 @@ class AgencyServiceTest {
     }
 
     @Test
-    void crearAgencyLanzaEntityNotFoundExceptionSiLaCompanyNoExiste() throws EntityNotFoundException {
+    void crearAgencyLanzaEntityNotFoundExceptionSiLaCompanyNoExiste()
+            throws EntityNotFoundException {
         when(companyRepository.obtenerCompanyPorId("99"))
                 .thenThrow(new EntityNotFoundException("Empresa no encontrada ID 99"));
 
-        Agency agency = Agency.builder().idCompany("99").name("Agencia Huérfana").state(true).build();
+        Agency agency =
+                Agency.builder().idCompany("99").name("Agencia Huérfana").state(true).build();
 
-        assertThatThrownBy(() -> service().crearAgency(agency)).isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> service().crearAgency(agency))
+                .isInstanceOf(EntityNotFoundException.class);
 
         verify(repository, never()).crearAgency(any());
     }
@@ -71,12 +77,14 @@ class AgencyServiceTest {
     }
 
     @Test
-    void actualizarAgencyLanzaEntityNotFoundExceptionSiEsDeOtraEmpresa() throws EntityNotFoundException {
+    void actualizarAgencyLanzaEntityNotFoundExceptionSiEsDeOtraEmpresa()
+            throws EntityNotFoundException {
         Agency agency = agency();
         when(repository.obtenerAgencyPorId("01", "a1"))
                 .thenThrow(new EntityNotFoundException("Agencia no encontrada ID a1"));
 
-        assertThatThrownBy(() -> service().actualizarAgency(agency)).isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> service().actualizarAgency(agency))
+                .isInstanceOf(EntityNotFoundException.class);
 
         verify(repository, never()).actualizarAgency(any());
     }
@@ -113,6 +121,7 @@ class AgencyServiceTest {
         PagedResult<Agency> expected = new PagedResult<>(List.of(agency), 0, 10, 1);
         when(repository.listarAgenciesPaginadas("01", List.of(), pageQuery)).thenReturn(expected);
 
-        assertThat(service().listarAgenciesPaginadas("01", List.of(), pageQuery)).isEqualTo(expected);
+        assertThat(service().listarAgenciesPaginadas("01", List.of(), pageQuery))
+                .isEqualTo(expected);
     }
 }

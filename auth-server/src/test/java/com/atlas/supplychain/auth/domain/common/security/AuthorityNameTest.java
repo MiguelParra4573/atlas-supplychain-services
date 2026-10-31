@@ -1,13 +1,12 @@
 package com.atlas.supplychain.auth.domain.common.security;
 
-import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Module;
-import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Operation;
-import org.junit.jupiter.api.Test;
-
-import java.util.Set;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Module;
+import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Operation;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
 
 class AuthorityNameTest {
 
@@ -32,13 +31,23 @@ class AuthorityNameTest {
      */
     @Test
     void laAutoridadNoCambiaAunqueLaOperacionCuelgueDeModulosConCualquierNombre() {
-        Operation operacion = Operation.builder()
-                .resource("USUARIOS")
-                .tag("CREAR")
-                .modules(Set.of(
-                        Module.builder().idModule(1L).name("Personal").state(true).build(),
-                        Module.builder().idModule(2L).name("Administración").state(true).build()))
-                .build();
+        Operation operacion =
+                Operation.builder()
+                        .resource("USUARIOS")
+                        .tag("CREAR")
+                        .modules(
+                                Set.of(
+                                        Module.builder()
+                                                .idModule(1L)
+                                                .name("Personal")
+                                                .state(true)
+                                                .build(),
+                                        Module.builder()
+                                                .idModule(2L)
+                                                .name("Administración")
+                                                .state(true)
+                                                .build()))
+                        .build();
 
         assertThat(AuthorityName.of(operacion)).isEqualTo("USUARIOS:CREAR");
     }

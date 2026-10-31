@@ -1,5 +1,12 @@
 package com.atlas.supplychain.auth.application.maintenance.authorization.operation;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.atlas.supplychain.auth.domain.common.exceptions.DuplicateRecordException;
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
 import com.atlas.supplychain.auth.domain.common.exceptions.ExistingDependenciesException;
@@ -9,45 +16,36 @@ import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.ModuleOperationRepository;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.ModuleRepository;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.OperationRepository;
+import com.atlas.supplychain.auth.domain.maintenance.authorization.screen.ModuleScreenOrder;
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.atlas.supplychain.auth.domain.maintenance.authorization.screen.ModuleScreenOrder;
-
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class OperationServiceTest {
 
-    @Mock
-    private OperationRepository repository;
-    @Mock
-    private GrantedPermissionRepository grantedPermissionRepository;
-    @Mock
-    private ModuleOperationRepository moduleOperationRepository;
-    @Mock
-    private ModuleRepository moduleRepository;
+    @Mock private OperationRepository repository;
+    @Mock private GrantedPermissionRepository grantedPermissionRepository;
+    @Mock private ModuleOperationRepository moduleOperationRepository;
+    @Mock private ModuleRepository moduleRepository;
 
     private OperationServiceImpl service() {
-        return new OperationServiceImpl(repository, grantedPermissionRepository, moduleOperationRepository,
+        return new OperationServiceImpl(
+                repository,
+                grantedPermissionRepository,
+                moduleOperationRepository,
                 moduleRepository);
     }
 
     @Test
     void crearOperacionCreaCuandoNoExisteLaMismaAutoridadEnLaEmpresa() {
-        Operation operation = Operation.builder().idCompany("c1").resource("USUARIOS").tag("CREAR").build();
+        Operation operation =
+                Operation.builder().idCompany("c1").resource("USUARIOS").tag("CREAR").build();
         when(repository.existsByResourceAndTag("c1", "USUARIOS", "CREAR")).thenReturn(false);
 
         service().crearOperacion(operation);
@@ -57,10 +55,12 @@ class OperationServiceTest {
 
     @Test
     void crearOperacionLanzaDuplicateRecordExceptionSiYaExisteLaMismaAutoridad() {
-        Operation operation = Operation.builder().idCompany("c1").resource("USUARIOS").tag("CREAR").build();
+        Operation operation =
+                Operation.builder().idCompany("c1").resource("USUARIOS").tag("CREAR").build();
         when(repository.existsByResourceAndTag("c1", "USUARIOS", "CREAR")).thenReturn(true);
 
-        assertThatThrownBy(() -> service().crearOperacion(operation)).isInstanceOf(DuplicateRecordException.class);
+        assertThatThrownBy(() -> service().crearOperacion(operation))
+                .isInstanceOf(DuplicateRecordException.class);
 
         verify(repository, never()).crearOperacion(operation);
     }
@@ -72,7 +72,8 @@ class OperationServiceTest {
      */
     @Test
     void crearOperacionNoConfundeElMismoTagEnOtroRecurso() {
-        Operation operation = Operation.builder().idCompany("c1").resource("BODEGAS").tag("CREAR").build();
+        Operation operation =
+                Operation.builder().idCompany("c1").resource("BODEGAS").tag("CREAR").build();
         when(repository.existsByResourceAndTag("c1", "BODEGAS", "CREAR")).thenReturn(false);
 
         service().crearOperacion(operation);
@@ -82,7 +83,13 @@ class OperationServiceTest {
 
     @Test
     void actualizarOperacionDelegaEnElRepositorio() throws EntityNotFoundException {
-        Operation operation = Operation.builder().idCompany("c1").idOperation(1L).resource("USUARIOS").tag("CREAR").build();
+        Operation operation =
+                Operation.builder()
+                        .idCompany("c1")
+                        .idOperation(1L)
+                        .resource("USUARIOS")
+                        .tag("CREAR")
+                        .build();
 
         service().actualizarOperacion(operation);
 
@@ -90,11 +97,21 @@ class OperationServiceTest {
     }
 
     @Test
-    void actualizarOperacionPropagaEntityNotFoundExceptionDelRepositorio() throws EntityNotFoundException {
-        Operation operation = Operation.builder().idCompany("c1").idOperation(99L).resource("USUARIOS").tag("CREAR").build();
-        doThrow(new EntityNotFoundException("no existe")).when(repository).actualizarOperacion(operation);
+    void actualizarOperacionPropagaEntityNotFoundExceptionDelRepositorio()
+            throws EntityNotFoundException {
+        Operation operation =
+                Operation.builder()
+                        .idCompany("c1")
+                        .idOperation(99L)
+                        .resource("USUARIOS")
+                        .tag("CREAR")
+                        .build();
+        doThrow(new EntityNotFoundException("no existe"))
+                .when(repository)
+                .actualizarOperacion(operation);
 
-        assertThatThrownBy(() -> service().actualizarOperacion(operation)).isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> service().actualizarOperacion(operation))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
@@ -108,10 +125,12 @@ class OperationServiceTest {
     }
 
     @Test
-    void eliminarOperacionLanzaExistingDependenciesExceptionSiTienePermisosConcedidosAsociados() throws EntityNotFoundException {
+    void eliminarOperacionLanzaExistingDependenciesExceptionSiTienePermisosConcedidosAsociados()
+            throws EntityNotFoundException {
         when(grantedPermissionRepository.existsByOperation("c1", 1L)).thenReturn(true);
 
-        assertThatThrownBy(() -> service().eliminarOperacion("c1", 1L)).isInstanceOf(ExistingDependenciesException.class);
+        assertThatThrownBy(() -> service().eliminarOperacion("c1", 1L))
+                .isInstanceOf(ExistingDependenciesException.class);
 
         verify(repository, never()).eliminarOperacion("c1", 1L);
         verify(moduleOperationRepository, never()).eliminarAsignacionesDeOperacion("c1", 1L);
@@ -142,7 +161,8 @@ class OperationServiceTest {
     }
 
     @Test
-    void asignarAModuloResuelveAmbosLadosContraLaEmpresaAntesDeAsignar() throws EntityNotFoundException {
+    void asignarAModuloResuelveAmbosLadosContraLaEmpresaAntesDeAsignar()
+            throws EntityNotFoundException {
         when(repository.obtenerOperacionPorId("c1", 1L)).thenReturn(unaOperacion());
         when(moduleRepository.obtenerModuloPorId("c1", 7L))
                 .thenReturn(Module.builder().idCompany("c1").idModule(7L).name("Ventas").build());
@@ -154,8 +174,10 @@ class OperationServiceTest {
 
     /** Sin esta comprobación se podría colgar una operación de otra empresa de un módulo propio. */
     @Test
-    void asignarAModuloNoTocaLaTablaPuenteSiLaOperacionNoEsDeLaEmpresa() throws EntityNotFoundException {
-        when(repository.obtenerOperacionPorId("c1", 1L)).thenThrow(new EntityNotFoundException("no existe"));
+    void asignarAModuloNoTocaLaTablaPuenteSiLaOperacionNoEsDeLaEmpresa()
+            throws EntityNotFoundException {
+        when(repository.obtenerOperacionPorId("c1", 1L))
+                .thenThrow(new EntityNotFoundException("no existe"));
 
         assertThatThrownBy(() -> service().asignarAModulo("c1", 1L, 7L))
                 .isInstanceOf(EntityNotFoundException.class);
@@ -175,10 +197,12 @@ class OperationServiceTest {
     }
 
     @Test
-    void listarModulosDeOperacionDelegaEnElRepositorioDeAsignaciones() throws EntityNotFoundException {
+    void listarModulosDeOperacionDelegaEnElRepositorioDeAsignaciones()
+            throws EntityNotFoundException {
         Module ventas = Module.builder().idCompany("c1").idModule(7L).name("Ventas").build();
         when(repository.obtenerOperacionPorId("c1", 1L)).thenReturn(unaOperacion());
-        when(moduleOperationRepository.listarModulosDeOperacion("c1", 1L)).thenReturn(List.of(ventas));
+        when(moduleOperationRepository.listarModulosDeOperacion("c1", 1L))
+                .thenReturn(List.of(ventas));
 
         assertThat(service().listarModulosDeOperacion("c1", 1L)).containsExactly(ventas);
     }
@@ -188,44 +212,68 @@ class OperationServiceTest {
         Operation operation = unaOperacion();
         PageQuery pageQuery = new PageQuery(0, 10, List.of());
         PagedResult<Operation> expected = new PagedResult<>(List.of(operation), 0, 10, 1);
-        when(repository.listarOperacionesPaginadas("c1", List.of(), pageQuery)).thenReturn(expected);
+        when(repository.listarOperacionesPaginadas("c1", List.of(), pageQuery))
+                .thenReturn(expected);
 
-        assertThat(service().listarOperacionesPaginadas("c1", List.of(), pageQuery)).isEqualTo(expected);
+        assertThat(service().listarOperacionesPaginadas("c1", List.of(), pageQuery))
+                .isEqualTo(expected);
     }
 
     /**
-     * Bug real (NPE en producción, `HashMap.merge` con valor nulo): una pantalla recién asignada
-     * a un módulo, sin que nadie le haya puesto un orden todavía, es el caso normal -- no debe
-     * tirar 500, tiene que aparecer con `displayOrder == null`.
+     * Bug real (NPE en producción, `HashMap.merge` con valor nulo): una pantalla recién asignada a
+     * un módulo, sin que nadie le haya puesto un orden todavía, es el caso normal -- no debe tirar
+     * 500, tiene que aparecer con `displayOrder == null`.
      */
     @Test
     void pantallasDeModuloNoRevientaConPantallasSinOrdenTodavia() throws EntityNotFoundException {
-        Operation sinOrden = Operation.builder().idCompany("c1").idOperation(1L).resource("USUARIOS").tag("CREAR").build();
-        Operation conOrden = Operation.builder().idCompany("c1").idOperation(2L).resource("ROLES").tag("CREAR").build();
+        Operation sinOrden =
+                Operation.builder()
+                        .idCompany("c1")
+                        .idOperation(1L)
+                        .resource("USUARIOS")
+                        .tag("CREAR")
+                        .build();
+        Operation conOrden =
+                Operation.builder()
+                        .idCompany("c1")
+                        .idOperation(2L)
+                        .resource("ROLES")
+                        .tag("CREAR")
+                        .build();
         when(moduleRepository.obtenerModuloPorId("c1", 7L))
-                .thenReturn(Module.builder().idCompany("c1").idModule(7L).name("Seguridad").build());
-        when(repository.listarOperacionesPorModulo("c1", 7L)).thenReturn(List.of(sinOrden, conOrden));
+                .thenReturn(
+                        Module.builder().idCompany("c1").idModule(7L).name("Seguridad").build());
+        when(repository.listarOperacionesPorModulo("c1", 7L))
+                .thenReturn(List.of(sinOrden, conOrden));
         when(moduleOperationRepository.displayOrdersDeModulo("c1", 7L)).thenReturn(Map.of(2L, 5));
         when(moduleOperationRepository.screenGroupsDeModulo("c1", 7L)).thenReturn(Map.of());
 
         List<ModuleScreenOrder> resultado = service().pantallasDeModulo("c1", 7L);
 
-        assertThat(resultado).containsExactly(
-                new ModuleScreenOrder("ROLES", 5, null),
-                new ModuleScreenOrder("USUARIOS", null, null));
+        assertThat(resultado)
+                .containsExactly(
+                        new ModuleScreenOrder("ROLES", 5, null),
+                        new ModuleScreenOrder("USUARIOS", null, null));
     }
 
     @Test
-    void asignarCarpetaARecursoVerificaQueElModuloExistaYDelegaEnElRepositorio() throws EntityNotFoundException {
+    void asignarCarpetaARecursoVerificaQueElModuloExistaYDelegaEnElRepositorio()
+            throws EntityNotFoundException {
         when(moduleRepository.obtenerModuloPorId("c1", 7L))
                 .thenReturn(Module.builder().idCompany("c1").idModule(7L).name("Nómina").build());
 
         service().asignarCarpetaARecurso("c1", "SOLICITUDES_VACACIONES", 7L, 3L);
 
-        verify(moduleOperationRepository).asignarCarpetaARecurso("c1", 7L, "SOLICITUDES_VACACIONES", 3L);
+        verify(moduleOperationRepository)
+                .asignarCarpetaARecurso("c1", 7L, "SOLICITUDES_VACACIONES", 3L);
     }
 
     private static Operation unaOperacion() {
-        return Operation.builder().idCompany("c1").idOperation(1L).resource("USUARIOS").tag("CREAR").build();
+        return Operation.builder()
+                .idCompany("c1")
+                .idOperation(1L)
+                .resource("USUARIOS")
+                .tag("CREAR")
+                .build();
     }
 }

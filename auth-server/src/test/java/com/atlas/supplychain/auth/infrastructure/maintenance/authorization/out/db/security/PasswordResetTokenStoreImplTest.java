@@ -1,27 +1,25 @@
 package com.atlas.supplychain.auth.infrastructure.maintenance.authorization.out.db.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.atlas.supplychain.auth.application.security.dto.ResetTokenData;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.security.PasswordResetToken;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.security.PasswordResetTokenRepository;
+import java.time.Instant;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Instant;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class PasswordResetTokenStoreImplTest {
 
-    @Mock
-    private PasswordResetTokenRepository repository;
+    @Mock private PasswordResetTokenRepository repository;
 
     private PasswordResetTokenStoreImpl store;
 
@@ -39,7 +37,8 @@ class PasswordResetTokenStoreImplTest {
     void saveConstruyeElTokenYLoPersiste() {
         store = new PasswordResetTokenStoreImpl(repository);
         Instant expiresAt = Instant.now().plusSeconds(3600);
-        ArgumentCaptor<PasswordResetToken> captor = ArgumentCaptor.forClass(PasswordResetToken.class);
+        ArgumentCaptor<PasswordResetToken> captor =
+                ArgumentCaptor.forClass(PasswordResetToken.class);
 
         store.save("u1", "c1", "hash123", expiresAt);
 
@@ -55,14 +54,15 @@ class PasswordResetTokenStoreImplTest {
     void findByHashMapeaElTokenAResetTokenData() {
         store = new PasswordResetTokenStoreImpl(repository);
         Instant expiresAt = Instant.now().plusSeconds(3600);
-        PasswordResetToken token = PasswordResetToken.builder()
-                .id(1L)
-                .idUser("u1")
-                .idCompany("c1")
-                .tokenHash("hash123")
-                .expiresAt(expiresAt)
-                .usedAt(null)
-                .build();
+        PasswordResetToken token =
+                PasswordResetToken.builder()
+                        .id(1L)
+                        .idUser("u1")
+                        .idCompany("c1")
+                        .tokenHash("hash123")
+                        .expiresAt(expiresAt)
+                        .usedAt(null)
+                        .build();
         when(repository.findByTokenHash("hash123")).thenReturn(Optional.of(token));
         when(repository.findByTokenHash("otro")).thenReturn(Optional.empty());
 

@@ -1,5 +1,8 @@
 package com.atlas.supplychain.auth.infrastructure.config.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+
 import com.atlas.supplychain.auth.application.maintenance.authorization.grantedpermission.GrantedPermissionServiceImpl;
 import com.atlas.supplychain.auth.application.maintenance.authorization.module.ModuleServiceImpl;
 import com.atlas.supplychain.auth.application.maintenance.authorization.operation.OperationServiceImpl;
@@ -8,6 +11,11 @@ import com.atlas.supplychain.auth.application.maintenance.authorization.user.Use
 import com.atlas.supplychain.auth.application.security.AuthenticationService;
 import com.atlas.supplychain.auth.application.security.PasswordResetServiceImpl;
 import com.atlas.supplychain.auth.application.security.PasswordServiceImpl;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -20,35 +28,28 @@ import org.springframework.transaction.interceptor.TransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-
 /**
  * Blinda por reflexión el contrato implícito por convención de nombre que reemplaza a
- * {@code @Transactional} en application/maintenance/**.*ServiceImpl (hallazgo de solid-java,
- * spec 1.9): un método nuevo mal nombrado en cualquiera de estas 9 clases debe seguir cayendo en
- * la rama correcta (readOnly u RW), y las clases de application/security/** deben quedar fuera
- * del pointcut, tal como estaban antes de esta spec.
+ * {@code @Transactional} en application/maintenance/**.*ServiceImpl (hallazgo de solid-java, spec
+ * 1.9): un método nuevo mal nombrado en cualquiera de estas 9 clases debe seguir cayendo en la rama
+ * correcta (readOnly u RW), y las clases de application/security/** deben quedar fuera del
+ * pointcut, tal como estaban antes de esta spec.
  */
 class ApplicationTransactionConfigTest {
 
-    private static final List<Class<?>> MAINTENANCE_SERVICE_IMPLS = List.of(
-            GrantedPermissionServiceImpl.class,
-            ModuleServiceImpl.class,
-            OperationServiceImpl.class,
-            RoleServiceImpl.class,
-            UserServiceImpl.class
-    );
+    private static final List<Class<?>> MAINTENANCE_SERVICE_IMPLS =
+            List.of(
+                    GrantedPermissionServiceImpl.class,
+                    ModuleServiceImpl.class,
+                    OperationServiceImpl.class,
+                    RoleServiceImpl.class,
+                    UserServiceImpl.class);
 
-    private final PlatformTransactionManager transactionManager = mock(PlatformTransactionManager.class);
+    private final PlatformTransactionManager transactionManager =
+            mock(PlatformTransactionManager.class);
     private final Advisor advisor =
-            new ApplicationTransactionConfig().maintenanceServiceTransactionAdvisor(transactionManager);
+            new ApplicationTransactionConfig()
+                    .maintenanceServiceTransactionAdvisor(transactionManager);
 
     private static Stream<Class<?>> maintenanceServiceImpls() {
         return MAINTENANCE_SERVICE_IMPLS.stream();
@@ -58,8 +59,7 @@ class ApplicationTransactionConfigTest {
         return Stream.of(
                 AuthenticationService.class,
                 PasswordResetServiceImpl.class,
-                PasswordServiceImpl.class
-        );
+                PasswordServiceImpl.class);
     }
 
     @Test
@@ -77,7 +77,9 @@ class ApplicationTransactionConfigTest {
         boolean matches = pointcut.getMethodMatcher().matches(cualquierMetodo, serviceImpl);
 
         assertThat(matches)
-                .as("el pointcut debe matchear %s (application.maintenance.**.*ServiceImpl)", serviceImpl.getName())
+                .as(
+                        "el pointcut debe matchear %s (application.maintenance.**.*ServiceImpl)",
+                        serviceImpl.getName())
                 .isTrue();
     }
 
@@ -90,7 +92,10 @@ class ApplicationTransactionConfigTest {
         boolean matches = pointcut.getMethodMatcher().matches(cualquierMetodo, clase);
 
         assertThat(matches)
-                .as("el pointcut NO debe matchear %s -- nunca tuvo @Transactional y no se le debe añadir aquí", clase.getName())
+                .as(
+                        "el pointcut NO debe matchear %s -- nunca tuvo @Transactional y no se le"
+                                + " debe añadir aquí",
+                        clase.getName())
                 .isFalse();
     }
 
@@ -100,15 +105,22 @@ class ApplicationTransactionConfigTest {
         TransactionAttributeSource attributeSource = attributeSourceDelAdvisor();
 
         for (Method metodo : metodosPublicosDeclarados(serviceImpl)) {
-            TransactionAttribute atributo = attributeSource.getTransactionAttribute(metodo, serviceImpl);
+            TransactionAttribute atributo =
+                    attributeSource.getTransactionAttribute(metodo, serviceImpl);
             boolean esperaReadOnly = esperaSemanticaReadOnly(metodo.getName());
 
             assertThat(atributo)
-                    .as("%s.%s debe tener un TransactionAttribute resuelto", serviceImpl.getSimpleName(), metodo.getName())
+                    .as(
+                            "%s.%s debe tener un TransactionAttribute resuelto",
+                            serviceImpl.getSimpleName(), metodo.getName())
                     .isNotNull();
             assertThat(atributo.isReadOnly())
-                    .as("%s.%s (prefijo %s) esperaba readOnly=%s", serviceImpl.getSimpleName(), metodo.getName(),
-                            metodo.getName(), esperaReadOnly)
+                    .as(
+                            "%s.%s (prefijo %s) esperaba readOnly=%s",
+                            serviceImpl.getSimpleName(),
+                            metodo.getName(),
+                            metodo.getName(),
+                            esperaReadOnly)
                     .isEqualTo(esperaReadOnly);
         }
     }
@@ -130,7 +142,10 @@ class ApplicationTransactionConfigTest {
     private static Method primerMetodoPublicoDeclarado(Class<?> clase) {
         return metodosPublicosDeclarados(clase).stream()
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException(clase.getName() + " no declara métodos públicos propios"));
+                .orElseThrow(
+                        () ->
+                                new IllegalStateException(
+                                        clase.getName() + " no declara métodos públicos propios"));
     }
 
     private static List<Method> metodosPublicosDeclarados(Class<?> clase) {

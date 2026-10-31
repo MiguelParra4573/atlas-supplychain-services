@@ -1,5 +1,12 @@
 package com.atlas.supplychain.auth.application.maintenance.authorization.grantedpermission;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.atlas.supplychain.auth.application.audit.contracts.AuditTrail;
 import com.atlas.supplychain.auth.application.audit.contracts.CurrentActor;
 import com.atlas.supplychain.auth.application.audit.dto.Actor;
@@ -8,56 +15,47 @@ import com.atlas.supplychain.auth.application.maintenance.authorization.Permisos
 import com.atlas.supplychain.auth.domain.common.exceptions.DuplicateRecordException;
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.GrantedPermission;
-import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Module;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Operation;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.model.Role;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.GrantedPermissionRepository;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.OperationRepository;
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.RoleRepository;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class GrantedPermissionServiceTest {
 
-    @Mock
-    private GrantedPermissionRepository repository;
-    @Mock
-    private RoleRepository roleRepository;
-    @Mock
-    private OperationRepository operationRepository;
-    @Mock
-    private PermisosVigentesDelUsuario permisosVigentesDelUsuario;
-    @Mock
-    private AuditTrail auditTrail;
-    @Mock
-    private CurrentActor currentActor;
+    @Mock private GrantedPermissionRepository repository;
+    @Mock private RoleRepository roleRepository;
+    @Mock private OperationRepository operationRepository;
+    @Mock private PermisosVigentesDelUsuario permisosVigentesDelUsuario;
+    @Mock private AuditTrail auditTrail;
+    @Mock private CurrentActor currentActor;
 
     private GrantedPermissionServiceImpl service() {
-        return new GrantedPermissionServiceImpl(repository, roleRepository, operationRepository,
-                permisosVigentesDelUsuario, auditTrail, currentActor);
+        return new GrantedPermissionServiceImpl(
+                repository,
+                roleRepository,
+                operationRepository,
+                permisosVigentesDelUsuario,
+                auditTrail,
+                currentActor);
     }
 
     @Test
-    void asignarPermisoARolCreaCuandoRolYOperacionExistenYNoHayDuplicado() throws EntityNotFoundException {
+    void asignarPermisoARolCreaCuandoRolYOperacionExistenYNoHayDuplicado()
+            throws EntityNotFoundException {
         GrantedPermissionServiceImpl service = service();
         Role role = Role.builder().idCompany("c1").idRol(1L).name("ADMIN").build();
-        Operation operation = Operation.builder().idCompany("c1").idOperation(2L).tag("CREAR").build();
+        Operation operation =
+                Operation.builder().idCompany("c1").idOperation(2L).tag("CREAR").build();
         when(roleRepository.obtenerRolPorId("c1", 1L)).thenReturn(role);
         when(operationRepository.obtenerOperacionPorId("c1", 2L)).thenReturn(operation);
         when(repository.obtenerPorRolYOperacion("c1", 1L, 2L)).thenReturn(Optional.empty());
@@ -73,10 +71,12 @@ class GrantedPermissionServiceTest {
     }
 
     @Test
-    void asignarPermisoARolRegistraEventoDeAuditlogConCompuestoRolOperacionComoEntidadId() throws EntityNotFoundException {
+    void asignarPermisoARolRegistraEventoDeAuditlogConCompuestoRolOperacionComoEntidadId()
+            throws EntityNotFoundException {
         GrantedPermissionServiceImpl service = service();
         Role role = Role.builder().idCompany("c1").idRol(1L).name("ADMIN").build();
-        Operation operation = Operation.builder().idCompany("c1").idOperation(2L).tag("CREAR").build();
+        Operation operation =
+                Operation.builder().idCompany("c1").idOperation(2L).tag("CREAR").build();
         when(roleRepository.obtenerRolPorId("c1", 1L)).thenReturn(role);
         when(operationRepository.obtenerOperacionPorId("c1", 2L)).thenReturn(operation);
         when(repository.obtenerPorRolYOperacion("c1", 1L, 2L)).thenReturn(Optional.empty());
@@ -101,10 +101,12 @@ class GrantedPermissionServiceTest {
     }
 
     @Test
-    void asignarPermisoARolUsaIdCompanyDelParametroComoFallbackSiNoHayActorEnContexto() throws EntityNotFoundException {
+    void asignarPermisoARolUsaIdCompanyDelParametroComoFallbackSiNoHayActorEnContexto()
+            throws EntityNotFoundException {
         GrantedPermissionServiceImpl service = service();
         Role role = Role.builder().idCompany("c1").idRol(1L).name("ADMIN").build();
-        Operation operation = Operation.builder().idCompany("c1").idOperation(2L).tag("CREAR").build();
+        Operation operation =
+                Operation.builder().idCompany("c1").idOperation(2L).tag("CREAR").build();
         when(roleRepository.obtenerRolPorId("c1", 1L)).thenReturn(role);
         when(operationRepository.obtenerOperacionPorId("c1", 2L)).thenReturn(operation);
         when(repository.obtenerPorRolYOperacion("c1", 1L, 2L)).thenReturn(Optional.empty());
@@ -122,38 +124,48 @@ class GrantedPermissionServiceTest {
     }
 
     @Test
-    void asignarPermisoARolLanzaEntityNotFoundExceptionSiElRolNoExiste() throws EntityNotFoundException {
+    void asignarPermisoARolLanzaEntityNotFoundExceptionSiElRolNoExiste()
+            throws EntityNotFoundException {
         GrantedPermissionServiceImpl service = service();
-        when(roleRepository.obtenerRolPorId("c1", 1L)).thenThrow(new EntityNotFoundException("no existe"));
+        when(roleRepository.obtenerRolPorId("c1", 1L))
+                .thenThrow(new EntityNotFoundException("no existe"));
 
-        assertThatThrownBy(() -> service.asignarPermisoARol("c1", 1L, 2L)).isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> service.asignarPermisoARol("c1", 1L, 2L))
+                .isInstanceOf(EntityNotFoundException.class);
 
         verify(repository, never()).crearPermiso(any());
     }
 
     @Test
-    void asignarPermisoARolLanzaEntityNotFoundExceptionSiLaOperacionNoExiste() throws EntityNotFoundException {
+    void asignarPermisoARolLanzaEntityNotFoundExceptionSiLaOperacionNoExiste()
+            throws EntityNotFoundException {
         GrantedPermissionServiceImpl service = service();
         Role role = Role.builder().idCompany("c1").idRol(1L).name("ADMIN").build();
         when(roleRepository.obtenerRolPorId("c1", 1L)).thenReturn(role);
-        when(operationRepository.obtenerOperacionPorId("c1", 2L)).thenThrow(new EntityNotFoundException("no existe"));
+        when(operationRepository.obtenerOperacionPorId("c1", 2L))
+                .thenThrow(new EntityNotFoundException("no existe"));
 
-        assertThatThrownBy(() -> service.asignarPermisoARol("c1", 1L, 2L)).isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> service.asignarPermisoARol("c1", 1L, 2L))
+                .isInstanceOf(EntityNotFoundException.class);
 
         verify(repository, never()).crearPermiso(any());
     }
 
     @Test
-    void asignarPermisoARolLanzaDuplicateRecordExceptionSiElParYaEstaConcedido() throws EntityNotFoundException {
+    void asignarPermisoARolLanzaDuplicateRecordExceptionSiElParYaEstaConcedido()
+            throws EntityNotFoundException {
         GrantedPermissionServiceImpl service = service();
         Role role = Role.builder().idCompany("c1").idRol(1L).name("ADMIN").build();
-        Operation operation = Operation.builder().idCompany("c1").idOperation(2L).tag("CREAR").build();
+        Operation operation =
+                Operation.builder().idCompany("c1").idOperation(2L).tag("CREAR").build();
         when(roleRepository.obtenerRolPorId("c1", 1L)).thenReturn(role);
         when(operationRepository.obtenerOperacionPorId("c1", 2L)).thenReturn(operation);
         when(repository.obtenerPorRolYOperacion("c1", 1L, 2L))
-                .thenReturn(Optional.of(GrantedPermission.builder().idGrantedPermission(9L).build()));
+                .thenReturn(
+                        Optional.of(GrantedPermission.builder().idGrantedPermission(9L).build()));
 
-        assertThatThrownBy(() -> service.asignarPermisoARol("c1", 1L, 2L)).isInstanceOf(DuplicateRecordException.class);
+        assertThatThrownBy(() -> service.asignarPermisoARol("c1", 1L, 2L))
+                .isInstanceOf(DuplicateRecordException.class);
 
         verify(repository, never()).crearPermiso(any());
     }
@@ -161,7 +173,8 @@ class GrantedPermissionServiceTest {
     @Test
     void revocarPermisoValidaExistenciaYDelegaEnElRepositorio() throws EntityNotFoundException {
         GrantedPermissionServiceImpl service = service();
-        when(repository.obtenerPermisoPorId("c1", 5L)).thenReturn(GrantedPermission.builder().idGrantedPermission(5L).build());
+        when(repository.obtenerPermisoPorId("c1", 5L))
+                .thenReturn(GrantedPermission.builder().idGrantedPermission(5L).build());
         when(currentActor.actorActual()).thenReturn(new Actor("u1", "c1", "u1", "ADMIN"));
 
         service.revocarPermiso("c1", 5L);
@@ -172,7 +185,8 @@ class GrantedPermissionServiceTest {
     @Test
     void revocarPermisoRegistraEventoDeAuditlogConSeveridadAlta() throws EntityNotFoundException {
         GrantedPermissionServiceImpl service = service();
-        when(repository.obtenerPermisoPorId("c1", 5L)).thenReturn(GrantedPermission.builder().idGrantedPermission(5L).build());
+        when(repository.obtenerPermisoPorId("c1", 5L))
+                .thenReturn(GrantedPermission.builder().idGrantedPermission(5L).build());
         when(currentActor.actorActual()).thenReturn(new Actor("u1", "c1", "u1", "ADMIN"));
 
         service.revocarPermiso("c1", 5L);
@@ -191,9 +205,11 @@ class GrantedPermissionServiceTest {
     @Test
     void revocarPermisoPropagaEntityNotFoundExceptionSiNoExiste() throws EntityNotFoundException {
         GrantedPermissionServiceImpl service = service();
-        when(repository.obtenerPermisoPorId("c1", 5L)).thenThrow(new EntityNotFoundException("no existe"));
+        when(repository.obtenerPermisoPorId("c1", 5L))
+                .thenThrow(new EntityNotFoundException("no existe"));
 
-        assertThatThrownBy(() -> service.revocarPermiso("c1", 5L)).isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> service.revocarPermiso("c1", 5L))
+                .isInstanceOf(EntityNotFoundException.class);
 
         verify(repository, never()).eliminarPermiso("c1", 5L);
     }
@@ -207,7 +223,8 @@ class GrantedPermissionServiceTest {
     void obtenerPermisosEfectivosDelegaEnLaVistaDeAutoridadesDelColaborador() {
         GrantedPermissionServiceImpl service = service();
 
-        when(permisosVigentesDelUsuario.autoridades("u1", "c1")).thenReturn(Set.of("USUARIOS:CREAR"));
+        when(permisosVigentesDelUsuario.autoridades("u1", "c1"))
+                .thenReturn(Set.of("USUARIOS:CREAR"));
 
         assertThat(service.obtenerPermisosEfectivos("u1", "c1")).containsExactly("USUARIOS:CREAR");
     }
@@ -223,7 +240,8 @@ class GrantedPermissionServiceTest {
     @Test
     void obtenerPermisoPorIdDelegaEnElRepositorio() throws EntityNotFoundException {
         GrantedPermissionServiceImpl service = service();
-        GrantedPermission permiso = GrantedPermission.builder().idCompany("c1").idGrantedPermission(1L).build();
+        GrantedPermission permiso =
+                GrantedPermission.builder().idCompany("c1").idGrantedPermission(1L).build();
         when(repository.obtenerPermisoPorId("c1", 1L)).thenReturn(permiso);
 
         assertThat(service.obtenerPermisoPorId("c1", 1L)).isEqualTo(permiso);
@@ -232,7 +250,8 @@ class GrantedPermissionServiceTest {
     @Test
     void listarPermisosPorRolDelegaEnElRepositorio() {
         GrantedPermissionServiceImpl service = service();
-        GrantedPermission permiso = GrantedPermission.builder().idCompany("c1").idGrantedPermission(1L).build();
+        GrantedPermission permiso =
+                GrantedPermission.builder().idCompany("c1").idGrantedPermission(1L).build();
         when(repository.listarPermisosPorRol("c1", 1L)).thenReturn(List.of(permiso));
 
         assertThat(service.listarPermisosPorRol("c1", 1L)).containsExactly(permiso);
@@ -242,7 +261,9 @@ class GrantedPermissionServiceTest {
     void listarPermisosPaginadosDelegaEnElRepositorio() {
         GrantedPermissionServiceImpl service = service();
         var pageQuery = new com.atlas.supplychain.auth.domain.shared.PageQuery(0, 10, List.of());
-        var expected = new com.atlas.supplychain.auth.domain.shared.PagedResult<GrantedPermission>(List.of(), 0, 10, 0);
+        var expected =
+                new com.atlas.supplychain.auth.domain.shared.PagedResult<GrantedPermission>(
+                        List.of(), 0, 10, 0);
         when(repository.listarPermisosPaginados("c1", List.of(), pageQuery)).thenReturn(expected);
 
         assertThat(service.listarPermisosPaginados("c1", List.of(), pageQuery)).isEqualTo(expected);

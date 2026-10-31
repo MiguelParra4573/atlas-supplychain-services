@@ -1,12 +1,11 @@
 package com.atlas.supplychain.auth.domain.maintenance.authorization.model;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class UserTest {
 
@@ -21,7 +20,8 @@ class UserTest {
 
         User user = usuarioCon(crear, editar, listar);
 
-        assertThat(user.permisosEfectivos()).containsExactlyInAnyOrder("USUARIOS:CREAR", "USUARIOS:EDITAR", "ROLES:LISTAR");
+        assertThat(user.permisosEfectivos())
+                .containsExactlyInAnyOrder("USUARIOS:CREAR", "USUARIOS:EDITAR", "ROLES:LISTAR");
     }
 
     @Test
@@ -30,7 +30,8 @@ class UserTest {
         Operation activa = operacion("USUARIOS", "CREAR", true, modulo);
         Operation inactiva = operacion("USUARIOS", "EDITAR", false, modulo);
 
-        assertThat(usuarioCon(activa, inactiva).permisosEfectivos()).containsExactly("USUARIOS:CREAR");
+        assertThat(usuarioCon(activa, inactiva).permisosEfectivos())
+                .containsExactly("USUARIOS:CREAR");
     }
 
     /**
@@ -53,7 +54,8 @@ class UserTest {
     @Test
     void permisosEfectivosIncluyeLaOperacionSiAlMenosUnoDeSusModulosSigueActivo() {
         Module ventas = Module.builder().idModule(1L).name("Ventas").state(true).build();
-        Module administracion = Module.builder().idModule(2L).name("Administración").state(false).build();
+        Module administracion =
+                Module.builder().idModule(2L).name("Administración").state(false).build();
         Operation clientes = operacion("CLIENTES", "LISTAR", true, ventas, administracion);
 
         assertThat(usuarioCon(clientes).permisosEfectivos()).containsExactly("CLIENTES:LISTAR");
@@ -65,8 +67,13 @@ class UserTest {
      */
     @Test
     void permisosEfectivosIncluyeOperacionesSinNingunModuloAsignado() {
-        Operation huerfana = Operation.builder()
-                .resource("INVENTARIO").tag("CREAR").state(true).modules(Set.of()).build();
+        Operation huerfana =
+                Operation.builder()
+                        .resource("INVENTARIO")
+                        .tag("CREAR")
+                        .state(true)
+                        .modules(Set.of())
+                        .build();
 
         assertThat(usuarioCon(huerfana).permisosEfectivos()).containsExactly("INVENTARIO:CREAR");
     }
@@ -76,10 +83,19 @@ class UserTest {
         Module modulo = Module.builder().idModule(1L).name("USUARIOS").state(true).build();
         Operation operacion = operacion("USUARIOS", "CREAR", true, modulo);
 
-        Role role = Role.builder().grantedPermissions(Set.of(
-                GrantedPermission.builder().idGrantedPermission(1L).operation(operacion).build(),
-                GrantedPermission.builder().idGrantedPermission(2L).operation(operacion).build()
-        )).build();
+        Role role =
+                Role.builder()
+                        .grantedPermissions(
+                                Set.of(
+                                        GrantedPermission.builder()
+                                                .idGrantedPermission(1L)
+                                                .operation(operacion)
+                                                .build(),
+                                        GrantedPermission.builder()
+                                                .idGrantedPermission(2L)
+                                                .operation(operacion)
+                                                .build()))
+                        .build();
         User user = User.builder().idUser("u1").role(role).build();
 
         assertThat(user.permisosEfectivos()).containsExactly("USUARIOS:CREAR");
@@ -101,12 +117,15 @@ class UserTest {
         Operation editar = operacion("USUARIOS", "EDITAR", true, usuarios);
         Operation listar = operacion("ROLES", "LISTAR", true, roles);
 
-        Map<Module, List<GrantedPermission>> porModulo = usuarioCon(crear, editar, listar).permisosVigentesPorModulo();
+        Map<Module, List<GrantedPermission>> porModulo =
+                usuarioCon(crear, editar, listar).permisosVigentesPorModulo();
 
         assertThat(porModulo).hasSize(2);
-        assertThat(porModulo.get(usuarios)).extracting(GrantedPermission::getOperation)
+        assertThat(porModulo.get(usuarios))
+                .extracting(GrantedPermission::getOperation)
                 .containsExactlyInAnyOrder(crear, editar);
-        assertThat(porModulo.get(roles)).extracting(GrantedPermission::getOperation)
+        assertThat(porModulo.get(roles))
+                .extracting(GrantedPermission::getOperation)
                 .containsExactly(listar);
     }
 
@@ -114,7 +133,8 @@ class UserTest {
     @Test
     void unaOperacionEnDosModulosApareceBajoLosDosPeroConUnaSolaAutoridad() {
         Module ventas = Module.builder().idModule(1L).name("Ventas").state(true).build();
-        Module administracion = Module.builder().idModule(2L).name("Administración").state(true).build();
+        Module administracion =
+                Module.builder().idModule(2L).name("Administración").state(true).build();
         Operation clientes = operacion("CLIENTES", "LISTAR", true, ventas, administracion);
 
         User user = usuarioCon(clientes);
@@ -132,8 +152,13 @@ class UserTest {
 
         Operation visible = operacion("USUARIOS", "CREAR", true, activo);
         Operation enModuloInactivo = operacion("REPORTES", "CONSULTAR", true, inactivo);
-        Operation sinModulo = Operation.builder()
-                .resource("INVENTARIO").tag("CREAR").state(true).modules(Set.of()).build();
+        Operation sinModulo =
+                Operation.builder()
+                        .resource("INVENTARIO")
+                        .tag("CREAR")
+                        .state(true)
+                        .modules(Set.of())
+                        .build();
 
         Map<Module, List<GrantedPermission>> porModulo =
                 usuarioCon(visible, enModuloInactivo, sinModulo).permisosVigentesPorModulo();
@@ -148,7 +173,8 @@ class UserTest {
         assertThat(user.permisosVigentesPorModulo()).isEmpty();
     }
 
-    private static Operation operacion(String resource, String tag, boolean state, Module... modules) {
+    private static Operation operacion(
+            String resource, String tag, boolean state, Module... modules) {
         return Operation.builder()
                 .resource(resource)
                 .tag(tag)
@@ -161,8 +187,15 @@ class UserTest {
         Set<GrantedPermission> permisos = new java.util.HashSet<>();
         long id = 1;
         for (Operation operacion : operaciones) {
-            permisos.add(GrantedPermission.builder().idGrantedPermission(id++).operation(operacion).build());
+            permisos.add(
+                    GrantedPermission.builder()
+                            .idGrantedPermission(id++)
+                            .operation(operacion)
+                            .build());
         }
-        return User.builder().idUser("u1").role(Role.builder().idRol(1L).grantedPermissions(permisos).build()).build();
+        return User.builder()
+                .idUser("u1")
+                .role(Role.builder().idRol(1L).grantedPermissions(permisos).build())
+                .build();
     }
 }

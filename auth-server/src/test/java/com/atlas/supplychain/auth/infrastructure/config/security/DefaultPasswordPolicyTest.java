@@ -1,20 +1,20 @@
 package com.atlas.supplychain.auth.infrastructure.config.security;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.atlas.supplychain.auth.domain.common.exceptions.BusinessRuleCode;
 import com.atlas.supplychain.auth.domain.common.exceptions.BusinessRuleException;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 class DefaultPasswordPolicyTest {
 
-    private final DefaultPasswordPolicy policy = new DefaultPasswordPolicy(new PasswordPolicyProperties());
+    private final DefaultPasswordPolicy policy =
+            new DefaultPasswordPolicy(new PasswordPolicyProperties());
 
     @Test
     void aceptaContrasenaValida() {
-        assertThatCode(() -> policy.validateOrThrow("Abcdef12#$"))
-                .doesNotThrowAnyException();
+        assertThatCode(() -> policy.validateOrThrow("Abcdef12#$")).doesNotThrowAnyException();
     }
 
     @Test

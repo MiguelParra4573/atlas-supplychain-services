@@ -1,25 +1,23 @@
 package com.atlas.supplychain.auth.infrastructure.maintenance.authorization.out.db.security;
 
-import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
-import com.atlas.supplychain.auth.domain.maintenance.authorization.model.User;
-import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.UserRepository;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
+import com.atlas.supplychain.auth.domain.maintenance.authorization.model.User;
+import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.UserRepository;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 @ExtendWith(MockitoExtension.class)
 class UserStoreImplTest {
 
-    @Mock
-    private UserRepository userRepository;
+    @Mock private UserRepository userRepository;
 
     private UserStoreImpl store;
 
@@ -31,7 +29,8 @@ class UserStoreImplTest {
 
         assertThat(store.findByIdUser("u1")).isEqualTo(user);
 
-        when(userRepository.findByIdUsuarioWithAuthorities("desconocido")).thenReturn(Optional.empty());
+        when(userRepository.findByIdUsuarioWithAuthorities("desconocido"))
+                .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> store.findByIdUser("desconocido"))
                 .isInstanceOf(EntityNotFoundException.class);
@@ -41,7 +40,8 @@ class UserStoreImplTest {
     void findWithAuthoritiesDelegaEnElRepositorioConIdCompany() {
         store = new UserStoreImpl(userRepository);
         User user = User.builder().idUser("u1").idCompany("c1").build();
-        when(userRepository.findByIdUsuarioWithAuthorities("u1", "c1")).thenReturn(Optional.of(user));
+        when(userRepository.findByIdUsuarioWithAuthorities("u1", "c1"))
+                .thenReturn(Optional.of(user));
 
         assertThat(store.findWithAuthorities("u1", "c1")).contains(user);
     }
@@ -50,13 +50,15 @@ class UserStoreImplTest {
     void findWithAuthoritiesByUsernameDelegaEnElRepositorioSinIdCompany() {
         store = new UserStoreImpl(userRepository);
         User user = User.builder().idUser("u1").idCompany("c1").build();
-        when(userRepository.findByUsernameWithAuthorities("juan.perez")).thenReturn(Optional.of(user));
+        when(userRepository.findByUsernameWithAuthorities("juan.perez"))
+                .thenReturn(Optional.of(user));
 
         assertThat(store.findWithAuthoritiesByUsername("juan.perez")).contains(user);
     }
 
     @Test
-    void saveDelegaEnActualizarUsuario() throws com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException {
+    void saveDelegaEnActualizarUsuario()
+            throws com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException {
         store = new UserStoreImpl(userRepository);
         User user = User.builder().idUser("u1").idCompany("c1").build();
 

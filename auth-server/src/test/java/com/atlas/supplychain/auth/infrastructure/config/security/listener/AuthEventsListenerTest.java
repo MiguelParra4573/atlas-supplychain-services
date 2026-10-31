@@ -1,32 +1,31 @@
 package com.atlas.supplychain.auth.infrastructure.config.security.listener;
 
-import com.atlas.supplychain.auth.application.audit.contracts.AuditTrail;
-import com.atlas.supplychain.auth.application.audit.dto.AuditEventCommand;
-import com.atlas.supplychain.auth.domain.maintenance.authorization.model.User;
-import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.UserRepository;
-import com.atlas.supplychain.auth.infrastructure.config.security.AccountLockoutProperties;
-import com.atlas.supplychain.auth.infrastructure.config.security.CustomUserDetails;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
-import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.atlas.supplychain.auth.application.audit.contracts.AuditTrail;
+import com.atlas.supplychain.auth.application.audit.dto.AuditEventCommand;
+import com.atlas.supplychain.auth.domain.maintenance.authorization.model.User;
+import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.UserRepository;
+import com.atlas.supplychain.auth.infrastructure.config.security.AccountLockoutProperties;
+import com.atlas.supplychain.auth.infrastructure.config.security.CustomUserDetails;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
+import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.core.Authentication;
 
 /**
  * Spec 2.4: login fallido y bloqueo por intentos disparan auditlog via {@link AuditTrail}.
@@ -35,10 +34,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AuthEventsListenerTest {
 
-    @Mock
-    private UserRepository userRepository;
-    @Mock
-    private AuditTrail auditTrail;
+    @Mock private UserRepository userRepository;
+    @Mock private AuditTrail auditTrail;
 
     private AuthEventsListener listener() {
         return new AuthEventsListener(userRepository, auditTrail, new AccountLockoutProperties());
@@ -58,8 +55,12 @@ class AuthEventsListenerTest {
         User user = usuario("u1", "c1", 1);
         when(userRepository.findByUsernameWithAuthorities("u1")).thenReturn(Optional.of(user));
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken("u1", "clave-incorrecta");
-        listener().onBadCredentials(new AuthenticationFailureBadCredentialsEvent(authentication, new BadCredentialsException("bad creds")));
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken("u1", "clave-incorrecta");
+        listener()
+                .onBadCredentials(
+                        new AuthenticationFailureBadCredentialsEvent(
+                                authentication, new BadCredentialsException("bad creds")));
 
         ArgumentCaptor<AuditEventCommand> captor = ArgumentCaptor.forClass(AuditEventCommand.class);
         verify(auditTrail).registrar(captor.capture());
@@ -82,8 +83,12 @@ class AuthEventsListenerTest {
     void onBadCredentialsConUsuarioInexistenteRegistraLoginFallidoConCompanyIdUnknown() {
         when(userRepository.findByUsernameWithAuthorities("fantasma")).thenReturn(Optional.empty());
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken("fantasma", "clave");
-        listener().onBadCredentials(new AuthenticationFailureBadCredentialsEvent(authentication, new BadCredentialsException("bad creds")));
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken("fantasma", "clave");
+        listener()
+                .onBadCredentials(
+                        new AuthenticationFailureBadCredentialsEvent(
+                                authentication, new BadCredentialsException("bad creds")));
 
         ArgumentCaptor<AuditEventCommand> captor = ArgumentCaptor.forClass(AuditEventCommand.class);
         verify(auditTrail).registrar(captor.capture());
@@ -101,8 +106,12 @@ class AuthEventsListenerTest {
         User user = usuario("u1", "c1", 4);
         when(userRepository.findByUsernameWithAuthorities("u1")).thenReturn(Optional.of(user));
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken("u1", "clave-incorrecta");
-        listener().onBadCredentials(new AuthenticationFailureBadCredentialsEvent(authentication, new BadCredentialsException("bad creds")));
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken("u1", "clave-incorrecta");
+        listener()
+                .onBadCredentials(
+                        new AuthenticationFailureBadCredentialsEvent(
+                                authentication, new BadCredentialsException("bad creds")));
 
         ArgumentCaptor<AuditEventCommand> captor = ArgumentCaptor.forClass(AuditEventCommand.class);
         verify(auditTrail, times(2)).registrar(captor.capture());
@@ -121,7 +130,8 @@ class AuthEventsListenerTest {
         assertThat(bloqueo.userId()).isEqualTo("u1");
         assertThat(bloqueo.username()).isEqualTo("u1");
         assertThat(bloqueo.rolPrincipal()).isNull();
-        assertThat(bloqueo.resumen()).isEqualTo("Usuario bloqueado por exceso de intentos fallidos");
+        assertThat(bloqueo.resumen())
+                .isEqualTo("Usuario bloqueado por exceso de intentos fallidos");
     }
 
     @Test
@@ -129,8 +139,12 @@ class AuthEventsListenerTest {
         User user = usuario("u1", "c1", 1);
         when(userRepository.findByUsernameWithAuthorities("u1")).thenReturn(Optional.of(user));
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken("u1", "clave-incorrecta");
-        listener().onBadCredentials(new AuthenticationFailureBadCredentialsEvent(authentication, new BadCredentialsException("bad creds")));
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken("u1", "clave-incorrecta");
+        listener()
+                .onBadCredentials(
+                        new AuthenticationFailureBadCredentialsEvent(
+                                authentication, new BadCredentialsException("bad creds")));
 
         verify(auditTrail, times(1)).registrar(any());
     }
@@ -141,7 +155,8 @@ class AuthEventsListenerTest {
         when(userRepository.findByIdUsuarioWithAuthorities("u1")).thenReturn(Optional.of(user));
 
         CustomUserDetails details = new CustomUserDetails(user, Set.of());
-        Authentication authentication = new UsernamePasswordAuthenticationToken(details, null, List.of());
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken(details, null, List.of());
         listener().onSuccess(new AuthenticationSuccessEvent(authentication));
 
         verify(auditTrail, never()).registrar(any());

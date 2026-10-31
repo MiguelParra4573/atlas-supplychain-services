@@ -1,5 +1,12 @@
 package com.atlas.supplychain.auth.application.maintenance.authorization.role;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 import com.atlas.supplychain.auth.application.audit.contracts.AuditTrail;
 import com.atlas.supplychain.auth.application.audit.contracts.CurrentActor;
 import com.atlas.supplychain.auth.application.audit.dto.Actor;
@@ -16,39 +23,30 @@ import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.
 import com.atlas.supplychain.auth.domain.maintenance.authorization.repositories.UserRepository;
 import com.atlas.supplychain.auth.domain.shared.PageQuery;
 import com.atlas.supplychain.auth.domain.shared.PagedResult;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class RoleServiceTest {
 
-    @Mock
-    private RoleRepository repository;
-    @Mock
-    private GrantedPermissionRepository grantedPermissionRepository;
-    @Mock
-    private UserRepository userRepository;
-    @Mock
-    private AuditTrail auditTrail;
-    @Mock
-    private CurrentActor currentActor;
-    @Mock
-    private OutboxRepository outboxRepository;
+    @Mock private RoleRepository repository;
+    @Mock private GrantedPermissionRepository grantedPermissionRepository;
+    @Mock private UserRepository userRepository;
+    @Mock private AuditTrail auditTrail;
+    @Mock private CurrentActor currentActor;
+    @Mock private OutboxRepository outboxRepository;
 
     private RoleServiceImpl service() {
-        return new RoleServiceImpl(repository, grantedPermissionRepository, userRepository, auditTrail, currentActor,
+        return new RoleServiceImpl(
+                repository,
+                grantedPermissionRepository,
+                userRepository,
+                auditTrail,
+                currentActor,
                 outboxRepository);
     }
 
@@ -115,7 +113,8 @@ class RoleServiceTest {
 
         service().crearRol(role);
 
-        ArgumentCaptor<OutboxEventCommand> captor = ArgumentCaptor.forClass(OutboxEventCommand.class);
+        ArgumentCaptor<OutboxEventCommand> captor =
+                ArgumentCaptor.forClass(OutboxEventCommand.class);
         verify(outboxRepository).append(captor.capture());
         OutboxEventCommand evento = captor.getValue();
         assertThat(evento.aggregateType()).isEqualTo("ROLE");
@@ -133,13 +132,15 @@ class RoleServiceTest {
         Role role = Role.builder().idCompany("c1").name("ADMIN").build();
         when(repository.existsByNameAndCompany("c1", "ADMIN")).thenReturn(true);
 
-        assertThatThrownBy(() -> service().crearRol(role)).isInstanceOf(DuplicateRecordException.class);
+        assertThatThrownBy(() -> service().crearRol(role))
+                .isInstanceOf(DuplicateRecordException.class);
 
         verify(repository, never()).crearRol(role);
     }
 
     @Test
-    void actualizarRolVerificaExistenciaYPertenenciaAlTenantAntesDeEscribir() throws EntityNotFoundException {
+    void actualizarRolVerificaExistenciaYPertenenciaAlTenantAntesDeEscribir()
+            throws EntityNotFoundException {
         Role role = Role.builder().idCompany("c1").idRol(1L).name("ADMIN").build();
         when(repository.obtenerRolPorId("c1", 1L)).thenReturn(role);
         when(currentActor.actorActual()).thenReturn(new Actor("u1", "c1", "u1", "ADMIN"));
@@ -170,14 +171,16 @@ class RoleServiceTest {
     }
 
     @Test
-    void actualizarRolPublicaOutboxRolActualizadoConElSnapshotDelRol() throws EntityNotFoundException {
+    void actualizarRolPublicaOutboxRolActualizadoConElSnapshotDelRol()
+            throws EntityNotFoundException {
         Role role = Role.builder().idCompany("c1").idRol(1L).name("ADMIN-2").state(false).build();
         when(repository.obtenerRolPorId("c1", 1L)).thenReturn(role);
         when(currentActor.actorActual()).thenReturn(new Actor("u1", "c1", "u1", "ADMIN"));
 
         service().actualizarRol(role);
 
-        ArgumentCaptor<OutboxEventCommand> captor = ArgumentCaptor.forClass(OutboxEventCommand.class);
+        ArgumentCaptor<OutboxEventCommand> captor =
+                ArgumentCaptor.forClass(OutboxEventCommand.class);
         verify(outboxRepository).append(captor.capture());
         OutboxEventCommand evento = captor.getValue();
         assertThat(evento.aggregateType()).isEqualTo("ROLE");
@@ -191,11 +194,14 @@ class RoleServiceTest {
     }
 
     @Test
-    void actualizarRolPropagaEntityNotFoundExceptionSiElRolNoExisteEnLaEmpresa() throws EntityNotFoundException {
+    void actualizarRolPropagaEntityNotFoundExceptionSiElRolNoExisteEnLaEmpresa()
+            throws EntityNotFoundException {
         Role role = Role.builder().idCompany("c1").idRol(99L).name("ADMIN").build();
-        when(repository.obtenerRolPorId("c1", 99L)).thenThrow(new EntityNotFoundException("no existe"));
+        when(repository.obtenerRolPorId("c1", 99L))
+                .thenThrow(new EntityNotFoundException("no existe"));
 
-        assertThatThrownBy(() -> service().actualizarRol(role)).isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> service().actualizarRol(role))
+                .isInstanceOf(EntityNotFoundException.class);
 
         verify(repository, never()).actualizarRol(role);
     }
@@ -231,14 +237,16 @@ class RoleServiceTest {
     }
 
     @Test
-    void eliminarRolPublicaOutboxRolEliminadoCuandoNoHayDependencias() throws EntityNotFoundException {
+    void eliminarRolPublicaOutboxRolEliminadoCuandoNoHayDependencias()
+            throws EntityNotFoundException {
         when(grantedPermissionRepository.listarPermisosPorRol("c1", 1L)).thenReturn(List.of());
         when(userRepository.existsByRole("c1", 1L)).thenReturn(false);
         when(currentActor.actorActual()).thenReturn(new Actor("u1", "c1", "u1", "ADMIN"));
 
         service().eliminarRol("c1", 1L);
 
-        ArgumentCaptor<OutboxEventCommand> captor = ArgumentCaptor.forClass(OutboxEventCommand.class);
+        ArgumentCaptor<OutboxEventCommand> captor =
+                ArgumentCaptor.forClass(OutboxEventCommand.class);
         verify(outboxRepository).append(captor.capture());
         OutboxEventCommand evento = captor.getValue();
         assertThat(evento.aggregateType()).isEqualTo("ROLE");
@@ -248,31 +256,37 @@ class RoleServiceTest {
     }
 
     @Test
-    void eliminarRolNoPublicaOutboxSiTienePermisosConcedidosAsociados() throws EntityNotFoundException {
+    void eliminarRolNoPublicaOutboxSiTienePermisosConcedidosAsociados()
+            throws EntityNotFoundException {
         when(grantedPermissionRepository.listarPermisosPorRol("c1", 1L))
                 .thenReturn(List.of(GrantedPermission.builder().idGrantedPermission(1L).build()));
 
-        assertThatThrownBy(() -> service().eliminarRol("c1", 1L)).isInstanceOf(ExistingDependenciesException.class);
+        assertThatThrownBy(() -> service().eliminarRol("c1", 1L))
+                .isInstanceOf(ExistingDependenciesException.class);
 
         verifyNoInteractions(outboxRepository);
     }
 
     @Test
-    void eliminarRolLanzaExistingDependenciesExceptionSiTienePermisosConcedidosAsociados() throws EntityNotFoundException {
+    void eliminarRolLanzaExistingDependenciesExceptionSiTienePermisosConcedidosAsociados()
+            throws EntityNotFoundException {
         when(grantedPermissionRepository.listarPermisosPorRol("c1", 1L))
                 .thenReturn(List.of(GrantedPermission.builder().idGrantedPermission(1L).build()));
 
-        assertThatThrownBy(() -> service().eliminarRol("c1", 1L)).isInstanceOf(ExistingDependenciesException.class);
+        assertThatThrownBy(() -> service().eliminarRol("c1", 1L))
+                .isInstanceOf(ExistingDependenciesException.class);
 
         verify(repository, never()).eliminarRol("c1", 1L);
     }
 
     @Test
-    void eliminarRolLanzaExistingDependenciesExceptionSiTieneUsuariosAsignados() throws EntityNotFoundException {
+    void eliminarRolLanzaExistingDependenciesExceptionSiTieneUsuariosAsignados()
+            throws EntityNotFoundException {
         when(grantedPermissionRepository.listarPermisosPorRol("c1", 1L)).thenReturn(List.of());
         when(userRepository.existsByRole("c1", 1L)).thenReturn(true);
 
-        assertThatThrownBy(() -> service().eliminarRol("c1", 1L)).isInstanceOf(ExistingDependenciesException.class);
+        assertThatThrownBy(() -> service().eliminarRol("c1", 1L))
+                .isInstanceOf(ExistingDependenciesException.class);
 
         verify(repository, never()).eliminarRol("c1", 1L);
     }
