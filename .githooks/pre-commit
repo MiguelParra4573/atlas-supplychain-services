@@ -1,0 +1,26 @@
+#!/bin/sh
+# Gate rápido local. La autoridad es CI; acá solo corre lo que tarda segundos: Spotless.
+#
+# No corre Error Prone/NullAway (compilación completa), ArchUnit ni Testcontainers/JaCoCo
+# (minutos y Podman). Eso es trabajo de CI.
+#
+# Verifica, nunca arregla: un hook que reescribe archivos con staging parcial deja el índice
+# desincronizado y commitea algo que nadie leyó.
+set -e
+
+cambiados=$(git diff --cached --name-only --diff-filter=ACMR)
+java=$(printf '%s\n' "$cambiados" | grep -E '\.(java|kts)$' || true)
+
+if [ -z "$java" ]; then
+    # Un commit que solo toca markdown o YAML no paga el arranque del daemon de Gradle.
+    exit 0
+fi
+
+echo "pre-commit: spotlessCheck"
+
+if ! ./gradlew -q :auth-server:spotlessCheck; then
+    echo "" >&2
+    echo "pre-commit: el formato falló." >&2
+    echo "  para arreglarlo: ./gradlew :auth-server:spotlessApply" >&2
+    exit 1
+fi

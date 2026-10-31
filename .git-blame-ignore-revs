@@ -1,0 +1,13 @@
+# Commits de puro reformateo, que no deben aparecer en `git blame`.
+#
+# Activalo una vez por clon:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# GitHub lo honra automáticamente en su vista de blame.
+#
+# Regla: acá solo entran commits generados por `./gradlew :auth-server:spotlessApply` sin
+# ninguna edición manual. Si un commit mezcla formato con lógica, no va.
+#
+# Pendiente: el primer spotlessApply de este harness (ver docs/adr/013-harness-de-calidad.md en
+# la raíz del workspace) todavía no tiene commit propio. Cuando se confirme, su SHA va acá, en
+# una línea sola, con el mensaje "style: aplicar spotless (sin cambios de comportamiento)".

@@ -1,3 +1,7 @@
 * text=auto eol=lf
 *.bat text eol=crlf
 *.jar binary
+
+# Los hooks corren con el sh de Git for Windows: con CRLF fallan con
+# "bad interpreter: /bin/sh^M" y git no avisa, se los salta en silencio.
+/.githooks/** text eol=lf

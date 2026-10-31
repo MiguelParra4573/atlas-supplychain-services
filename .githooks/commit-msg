@@ -1,0 +1,34 @@
+#!/bin/sh
+# Commits convencionales. Archivo idéntico en services/ y client/ (ambos repos): si se cambia uno,
+# se cambia el otro.
+#
+# Valida el asunto, y además rechaza los trailers de atribución que este proyecto no usa
+# (regla propia de este workspace, no de docs/adr/013-harness-de-calidad.md). El resto del cuerpo
+# y el pie quedan libres.
+mensaje_completo=$(cat "$1")
+asunto=$(printf '%s\n' "$mensaje_completo" | head -n1)
+
+# Los mensajes que genera git solo no se validan. Sin este escape, `git merge` y
+# `git rebase --autosquash` fallarían.
+case "$asunto" in
+    "Merge "* | "Revert "* | "fixup! "* | "squash! "* | "Reapply "*) exit 0 ;;
+esac
+
+patron='^(build|chore|ci|docs|feat|fix|perf|refactor|style|test)(\([a-z0-9./-]+\))?!?: .{1,80}$'
+
+if ! printf '%s' "$asunto" | grep -Eq "$patron"; then
+    echo "commit-msg: el asunto no es un commit convencional." >&2
+    echo "  recibido: $asunto" >&2
+    echo "  esperado: <tipo>(<alcance opcional>): <asunto, hasta 80 caracteres>" >&2
+    echo "  tipos:    build chore ci docs feat fix perf refactor style test" >&2
+    echo "  ejemplo:  feat(auth): endpoint de alta de usuario" >&2
+    exit 1
+fi
+
+if printf '%s\n' "$mensaje_completo" | grep -Eqi '^(Co-Authored-By|Claude-Session):'; then
+    echo "commit-msg: este proyecto no lleva trailers de atribución." >&2
+    echo "  encontrado: $(printf '%s\n' "$mensaje_completo" | grep -Ei '^(Co-Authored-By|Claude-Session):' | head -n1)" >&2
+    exit 1
+fi
+
+exit 0
