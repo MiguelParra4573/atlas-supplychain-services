@@ -1,8 +1,8 @@
 package com.atlas.supplychain.auth.infrastructure.out.client;
 
 import com.atlas.supplychain.auth.application.audit.dto.AuditEventCommand;
-import com.atlas.supplychain.auth.infrastructure.common.messaging.EventEnvelope;
 import com.atlas.supplychain.auth.infrastructure.config.messaging.MessagingProperties;
+import com.atlas.supplychain.platform.commons.messaging.EventEnvelope;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.UUID;

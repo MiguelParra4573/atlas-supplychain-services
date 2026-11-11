@@ -5,6 +5,8 @@ plugins {
 description = "IdP propio: usuarios, roles, permisos, menús y emisión de JWT RS256 (JWKS)."
 
 dependencies {
+    implementation(project(":platform-commons"))
+
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-liquibase")

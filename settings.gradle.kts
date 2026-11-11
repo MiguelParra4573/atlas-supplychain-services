@@ -15,4 +15,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "atlas-supplychain"
 
+include(":platform-commons")
 include(":auth-server")
