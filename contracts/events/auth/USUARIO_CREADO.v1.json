@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas-supplychain/contracts/events/auth/USUARIO_CREADO.v1.json",
+  "title": "USUARIO_CREADO",
+  "description": "Payload del evento USUARIO_CREADO, publicado por auth-server via outbox en la misma transaccion que el alta de usuario. Snapshot completo, no delta.",
+  "type": "object",
+  "required": ["idUser", "idCompany", "name", "lastName", "email", "idRole", "state"],
+  "properties": {
+    "idUser": { "type": "string" },
+    "idCompany": { "type": "string" },
+    "name": { "type": "string" },
+    "lastName": { "type": "string" },
+    "email": { "type": "string" },
+    "idRole": { "type": "string" },
+    "state": { "type": "string", "enum": ["true", "false"] }
+  }
+}

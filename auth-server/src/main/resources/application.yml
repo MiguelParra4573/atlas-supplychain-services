@@ -4,6 +4,9 @@ server:
     context-path: /api/v1
 
 spring:
+  # Al correr en el host lee ../.env (opcional: en contenedor no existe y las variables vienen del compose).
+  config:
+    import: optional:file:../.env[.properties]
   application:
     name: auth-server
 
@@ -14,7 +17,7 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:15100/atlas}
     username: ${DB_USERNAME:auth_user}
-    password: ${DB_PASSWORD:auth_pass}
+    password: ${DB_PASSWORD:${AUTH_DB_PASSWORD}}
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
@@ -42,7 +45,7 @@ spring:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:15110}
     username: ${RABBITMQ_USERNAME:atlas}
-    password: ${RABBITMQ_PASSWORD:atlas}
+    password: ${RABBITMQ_PASSWORD}
 
   mail:
     host: ${MAIL_HOST:localhost}

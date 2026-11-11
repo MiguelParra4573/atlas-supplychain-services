@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas-supplychain/contracts/events/auth/USUARIO_EMAIL_CAMBIADO.v1.json",
+  "title": "USUARIO_EMAIL_CAMBIADO",
+  "description": "Payload del evento USUARIO_EMAIL_CAMBIADO. Consumido por ms-notificacion para sincronizar el email copiado en recipient_group_members.",
+  "type": "object",
+  "required": ["idUser", "email"],
+  "properties": {
+    "idUser": { "type": "string" },
+    "email": { "type": "string" }
+  }
+}

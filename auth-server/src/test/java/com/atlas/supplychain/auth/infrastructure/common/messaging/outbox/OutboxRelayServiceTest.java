@@ -8,10 +8,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.atlas.supplychain.auth.infrastructure.common.messaging.EventEnvelope;
 import com.atlas.supplychain.auth.infrastructure.common.outbox.OutboxEventEntity;
 import com.atlas.supplychain.auth.infrastructure.common.outbox.OutboxEventJpaRepository;
 import com.atlas.supplychain.auth.infrastructure.config.messaging.MessagingProperties;
+import com.atlas.supplychain.platform.commons.messaging.EventEnvelope;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;

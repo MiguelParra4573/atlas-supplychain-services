@@ -12,7 +12,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 import com.atlas.supplychain.auth.application.security.PasswordService;
 import com.atlas.supplychain.auth.application.security.dto.ChangePasswordRequest;
 import com.atlas.supplychain.auth.domain.common.exceptions.EntityNotFoundException;
-import com.atlas.supplychain.auth.infrastructure.common.messaging.EventEnvelope;
+import com.atlas.supplychain.platform.commons.messaging.EventEnvelope;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
