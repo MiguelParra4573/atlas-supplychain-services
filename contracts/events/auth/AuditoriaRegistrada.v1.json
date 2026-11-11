@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas-supplychain/contracts/events/auth/AuditoriaRegistrada.v1.json",
+  "title": "AuditoriaRegistrada",
+  "description": "Payload del evento AuditoriaRegistrada, publicado best-effort (un solo intento, sin reintento) por AuditRabbitPublisher al exchange auth.events. Declarado sin consumidor hoy (G-SCH-019): el rastro de auditoria se guarda en una tabla de auth, no depende del broker.",
+  "type": "object",
+  "required": [
+    "accionTipo",
+    "accionNombre",
+    "entidadTipo",
+    "entidadId",
+    "modulo",
+    "severity",
+    "companyId",
+    "resumen",
+    "sourceService"
+  ],
+  "properties": {
+    "accionTipo": { "type": "string", "examples": ["LOGIN", "CREATE", "UPDATE", "DELETE"] },
+    "accionNombre": { "type": "string" },
+    "entidadTipo": { "type": "string", "examples": ["USUARIO", "ROL", "PERMISO"] },
+    "entidadId": { "type": "string" },
+    "modulo": { "type": "string", "examples": ["SEGURIDAD", "ADMINISTRACION"] },
+    "severity": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH"] },
+    "companyId": { "type": "string" },
+    "userId": { "type": ["string", "null"] },
+    "username": { "type": ["string", "null"] },
+    "rolPrincipal": { "type": ["string", "null"] },
+    "resumen": { "type": "string" },
+    "sourceService": { "type": "string" },
+    "ip": { "type": ["string", "null"] },
+    "userAgent": { "type": ["string", "null"] },
+    "requestId": { "type": ["string", "null"] }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas-supplychain/contracts/events/auth/ROL_ACTUALIZADO.v1.json",
+  "title": "ROL_ACTUALIZADO",
+  "description": "Payload del evento ROL_ACTUALIZADO. Snapshot completo post-update.",
+  "type": "object",
+  "required": ["idRole", "idCompany", "name", "state"],
+  "properties": {
+    "idRole": { "type": "string" },
+    "idCompany": { "type": "string" },
+    "name": { "type": "string" },
+    "state": { "type": "string", "enum": ["true", "false"] }
+  }
+}

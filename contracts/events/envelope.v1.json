@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas-supplychain/contracts/events/envelope.v1.json",
+  "title": "EventEnvelope",
+  "description": "Envelope comun a todos los eventos de la plataforma (ADR-003). Mismo formato para Java y Python; occurredAt siempre en UTC.",
+  "type": "object",
+  "required": [
+    "eventId",
+    "type",
+    "version",
+    "occurredAt",
+    "aggregateId",
+    "aggregateType",
+    "correlationId",
+    "producer",
+    "payload"
+  ],
+  "properties": {
+    "eventId": { "type": "string", "format": "uuid" },
+    "type": { "type": "string" },
+    "version": { "type": "integer", "minimum": 1 },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "aggregateId": { "type": "string" },
+    "aggregateType": { "type": "string" },
+    "correlationId": { "type": "string" },
+    "causationId": { "type": ["string", "null"] },
+    "producer": { "type": "string" },
+    "payload": { "type": "object" }
+  }
+}

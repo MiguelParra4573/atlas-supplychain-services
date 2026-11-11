@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas-supplychain/contracts/events/auth/ROL_ELIMINADO.v1.json",
+  "title": "ROL_ELIMINADO",
+  "description": "Payload del evento ROL_ELIMINADO. RoleRepositoryImpl hace baja fisica, mismo criterio que USUARIO_ELIMINADO.",
+  "type": "object",
+  "required": ["idRole", "idCompany"],
+  "properties": {
+    "idRole": { "type": "string" },
+    "idCompany": { "type": "string" }
+  }
+}

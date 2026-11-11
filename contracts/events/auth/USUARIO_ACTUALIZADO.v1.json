@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas-supplychain/contracts/events/auth/USUARIO_ACTUALIZADO.v1.json",
+  "title": "USUARIO_ACTUALIZADO",
+  "description": "Payload del evento USUARIO_ACTUALIZADO. Snapshot completo post-update (no delta), publicado cuando cambia name/lastName/email/idRole/state. No reemplaza USUARIO_EMAIL_CAMBIADO: cuando el email cambia se publican ambos en la misma transaccion.",
+  "type": "object",
+  "required": ["idUser", "idCompany", "name", "lastName", "email", "idRole", "state"],
+  "properties": {
+    "idUser": { "type": "string" },
+    "idCompany": { "type": "string" },
+    "name": { "type": "string" },
+    "lastName": { "type": "string" },
+    "email": { "type": "string" },
+    "idRole": { "type": "string" },
+    "state": { "type": "string", "enum": ["true", "false"] }
+  }
+}

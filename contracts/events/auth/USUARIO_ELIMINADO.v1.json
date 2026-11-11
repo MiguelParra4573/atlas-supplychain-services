@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas-supplychain/contracts/events/auth/USUARIO_ELIMINADO.v1.json",
+  "title": "USUARIO_ELIMINADO",
+  "description": "Payload del evento USUARIO_ELIMINADO. UserRepositoryImpl hace baja fisica, asi que el consumidor debe borrar (no desactivar) su copia del read model.",
+  "type": "object",
+  "required": ["idUser", "idCompany"],
+  "properties": {
+    "idUser": { "type": "string" },
+    "idCompany": { "type": "string" }
+  }
+}
